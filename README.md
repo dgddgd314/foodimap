@@ -1,6 +1,6 @@
-# 맛집지도
+# foodimap · 맛집지도
 
-내 티스토리 리뷰를 네이버 지도에 표시하는 정적 사이트입니다. 별도 `food` 저장소의 루트에서 GitHub Pages로 배포하며, 기존 GitHub 블로그와 메뉴 링크로 연결합니다.
+내 티스토리 리뷰를 네이버 지도에 표시하는 정적 사이트입니다. [dgddgd314/foodimap](https://github.com/dgddgd314/foodimap) 저장소에서 관리하며, 저장소 루트를 GitHub Pages로 독립 배포할 수 있습니다. 기존 블로그 저장소와의 연동은 보류합니다.
 
 ## 파일 구조
 
@@ -26,7 +26,7 @@ Node.js 22 이상에서 프로젝트 폴더를 열고 실행합니다. 패키지
 npm run dev
 ```
 
-[지도 미리보기](http://127.0.0.1:4173/food/)를 엽니다. 직접 실행한 터미널은 미리보기를 사용하는 동안 열어둡니다. 서버가 이미 실행 중이라면 주소만 열면 됩니다.
+[지도 미리보기](http://127.0.0.1:4173/foodimap/)를 엽니다. 직접 실행한 터미널은 미리보기를 사용하는 동안 열어둡니다. 서버가 이미 실행 중이라면 주소만 열면 됩니다.
 
 ```sh
 npm run check
@@ -45,7 +45,7 @@ npm test
 2. 아래 항목을 순서대로 입력합니다. 선택 항목은 Enter로 건너뛸 수 있습니다.
 3. 주소 변환 결과를 확인합니다. 후보가 여러 개면 해당하는 주소 번호를 선택합니다.
 4. 최종 확인에서 `y`를 입력하면 **`data/places.json`에 새 식당이 추가됩니다**.
-5. 미리보기를 새로고침해 위치·이름·리뷰 링크를 확인합니다. 공개 사이트에 반영하려면 변경된 파일을 `food` 저장소에 커밋·푸시합니다.
+5. 미리보기를 새로고침해 위치·이름·리뷰 링크를 확인합니다. 변경된 파일을 `foodimap` 저장소에 커밋·푸시합니다. Pages를 활성화한 이후에는 공개 사이트에도 반영됩니다.
 
 | 입력 항목 | 필수 | 예시 / 규칙 |
 | --- | --- | --- |
@@ -88,32 +88,30 @@ API 키는 식당 데이터에 저장하지 않습니다. `.env.local` 설정이
 
 - 기본 `address`를 바꾸면 `lat`, `lng`도 새 주소에 맞게 갱신해야 합니다. 상세주소의 층·호수만 바꾸는 경우 좌표를 다시 구할 필요는 없습니다.
 - JSON의 따옴표·쉼표 형식을 유지하고, 항목이 없으면 `[]`로 둡니다.
-- 현재 6개 기록은 모두 `isExample: true`인 가상의 예시입니다. 실제 기록을 채우면서 예시 객체를 제거하면 됩니다. 실제 기록은 `isExample: false`로 저장합니다.
+- 현재 기록은 가상의 예시 6개(`isExample: true`)와 하쿠텐라멘 실제 리뷰 1개(`isExample: false`)입니다. 실제 기록을 채우면서 예시 객체를 제거하면 됩니다.
 - 현재 구현은 **지점 하나에 총점·메모·리뷰 링크 하나**를 저장합니다. 앞서 구상한 지점 1:N 리뷰, 세부 평가 기준, 태그·페르소나는 아직 구현하지 않았습니다. `reviews` 배열을 임의로 추가해도 현재 화면에 표시되지 않습니다.
 
 ## 지도 설정
 
 `assets/config.js`의 `naverClientId`는 네이버 Maps 애플리케이션의 공개 Client ID이며 웹 SDK에서 `ncpKeyId`로 사용합니다. Client Secret은 `.env.local`에만 보관합니다. 지도를 표시하려면 Dynamic Map, 등록 도구에서 주소를 변환하려면 Geocoding이 필요합니다.
 
-Web 서비스 URL에는 배포 호스트 `https://dgddgd314.github.io`와 로컬 테스트 호스트 `http://127.0.0.1`를 등록합니다. `/food/` 경로나 포트는 제외합니다.
+Web 서비스 URL에는 배포 호스트 `https://dgddgd314.github.io`와 로컬 테스트 호스트 `http://127.0.0.1`를 등록합니다. `/foodimap/` 경로나 포트는 제외합니다.
 
 `naverStyleId`에는 제공받은 My Style ID가 설정되어 있습니다. 배경 음식점·카페 등의 표시 여부는 Style Editor에서 발행한 설정을 따릅니다. 스타일을 수정한 뒤 다시 발행하면 같은 ID로 연결합니다. [네이버 공식 스타일 연동 안내](https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Style-Editor.html)
 
 지도의 기본 위치 네 개는 `assets/app.js`의 `VIEWS`에서 설정합니다. 현재 위치 버튼은 누를 때만 브라우저 위치 권한을 요청하며, 위치 좌표를 파일이나 브라우저 저장소에 저장하지 않습니다.
 
-## GitHub Pages 배포와 블로그 연결
+## GitHub 저장소와 Pages 배포
 
-1. 별도 `dgddgd314/food` 저장소에 프로젝트를 올립니다.
-2. Settings → Pages에서 `Deploy from a branch`, 배포 브랜치, `/(root)`를 선택합니다.
+1. [dgddgd314/foodimap](https://github.com/dgddgd314/foodimap) 저장소의 `main` 브랜치에 프로젝트를 올립니다.
+2. 웹사이트 공개가 필요할 때 Settings → Pages에서 `Deploy from a branch`, `main`, `/(root)`를 선택합니다.
 3. `.nojekyll`을 포함해 저장소 루트의 `index.html`, `assets/`, `data/`를 그대로 배포합니다. 별도 빌드·파일 내보내기 단계가 없습니다.
-4. 지도 주소는 `https://dgddgd314.github.io/food/`입니다.
+4. Pages 활성화 후 지도 주소는 `https://dgddgd314.github.io/foodimap/`입니다.
 
-기존 블로그 저장소의 `src/components/blog/BlogArchive.astro` 안 `nav.blog-tabs`에 다음 링크를 추가합니다.
+GitHub 업로드와 Pages 활성화는 별도 단계입니다. `.env.local`, `.local/`, `.preview/`는 `.gitignore`에 따라 업로드하지 않습니다.
 
-```html
-<a class="blog-tab" href="/food/">맛집지도</a>
-```
+## 블로그 연결 (보류)
+
+현재는 기존 블로그 저장소를 수정하거나 맛집지도 메뉴를 추가하지 않습니다. 추후 블로그에서 연결할 때 사용할 경로는 `/foodimap/`입니다.
 
 지도 상단의 블로그·태그 메뉴는 각각 `https://dgddgd314.github.io/blog/`, `https://dgddgd314.github.io/blog/tags/`로 연결됩니다. 티스토리 글은 식당 상세 화면의 리뷰 링크로 연결됩니다. 현재 태그 메뉴는 기존 블로그의 태그 페이지이며 지도 내부 필터는 아닙니다.
-
-현재 작업은 로컬 구현까지이며, 이 작업에서 GitHub 원격 저장소 생성·배포나 기존 블로그 소스 수정은 수행하지 않았습니다.

@@ -44,7 +44,7 @@ try {
     console.log("저장하지 않았습니다.");
   } else {
     const result = await savePlace(path.join(root, "data", "places.json"), validated, candidates[choice - 1]);
-    console.log(`저장했습니다: data/places.json (${result.id})\n미리보기에서 위치를 확인한 뒤 food 저장소에 반영하면 됩니다.`);
+    console.log(`저장했습니다: data/places.json (${result.id})\n미리보기에서 위치를 확인한 뒤 foodimap 저장소에 반영하면 됩니다.`);
   }
 } catch (error) {
   console.error(error.message);

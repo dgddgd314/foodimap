@@ -7,17 +7,19 @@ import path from "node:path";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".woff2": "font/woff2" };
 const port = Number(process.env.PORT || 4173);
+const basePath = "/foodimap";
 
+// 저장소의 배포 경로와 루트 경로에서 로컬 정적 파일을 제공합니다.
 createServer(async (request, response) => {
   try {
     let pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-    // GitHub Pages의 /food/ 배포 경로도 같은 서버에서 확인합니다.
-    if (pathname === "/food") {
-      response.writeHead(302, { Location: "/food/" });
+    // GitHub Pages의 /foodimap/ 배포 경로도 같은 서버에서 확인합니다.
+    if (pathname === basePath) {
+      response.writeHead(302, { Location: `${basePath}/` });
       response.end();
       return;
     }
-    if (pathname.startsWith("/food/")) pathname = pathname.slice(5);
+    if (pathname.startsWith(`${basePath}/`)) pathname = pathname.slice(basePath.length);
     if (pathname.endsWith("/")) pathname += "index.html";
     const target = path.resolve(root, `.${pathname}`);
     const relative = path.relative(root, target);
@@ -31,4 +33,4 @@ createServer(async (request, response) => {
   } catch {
     response.writeHead(404); response.end("Not found");
   }
-}).listen(port, "127.0.0.1", () => console.log(`Local: http://127.0.0.1:${port}/food/`));
+}).listen(port, "127.0.0.1", () => console.log(`Local: http://127.0.0.1:${port}${basePath}/`));
