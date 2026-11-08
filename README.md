@@ -8,7 +8,7 @@
 | --- | --- |
 | `data/places.json` | 지도에서 읽는 식당 데이터 원본. 실제 기록은 이 파일에 저장됩니다. |
 | `examples/place-draft.json` | 새 식당을 등록할 때 복사해서 쓰는 입력 템플릿. 지도에서는 읽지 않습니다. |
-| `assets/config.js` | 공개 지도 Client ID, 발행한 스타일 ID, 상단 메뉴 주소 |
+| `assets/config.js` | 공개 지도 Client ID, 발행한 스타일 ID, 로고의 블로그 연결 주소 |
 | `assets/naver-map.js` | 네이버 지도 SDK 연결, 마커, 지도 이동, 현재 위치 표시 |
 | `assets/map-controls.js` | 이름을 띄엄띄엄 배치하는 로직과 위치 요청 |
 | `assets/app.js`, `assets/style.css`, `index.html` | 지도 화면과 식당 상세 정보 |
@@ -114,4 +114,4 @@ GitHub 업로드와 Pages 활성화는 별도 단계입니다. `.env.local`, `.l
 
 현재는 기존 블로그 저장소를 수정하거나 맛집지도 메뉴를 추가하지 않습니다. 추후 블로그에서 연결할 때 사용할 경로는 `/foodimap/`입니다.
 
-지도 상단의 블로그·태그 메뉴는 각각 `https://dgddgd314.github.io/blog/`, `https://dgddgd314.github.io/blog/tags/`로 연결됩니다. 티스토리 글은 식당 상세 화면의 리뷰 링크로 연결됩니다. 현재 태그 메뉴는 기존 블로그의 태그 페이지이며 지도 내부 필터는 아닙니다.
+지도는 화면 전체를 사용하며, 왼쪽 위 `dgddgd314` 로고를 누르면 `https://dgddgd314.github.io/blog/`로 이동합니다. 지역 프리셋은 로고 바로 아래에 왼쪽 정렬됩니다. 별도 헤더와 메뉴 탭은 없으며, 티스토리 글은 식당 상세 화면의 리뷰 링크로 연결됩니다.

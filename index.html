@@ -15,27 +15,17 @@
     <script src="./assets/app.js" defer></script>
   </head>
   <body>
-    <header class="site-header">
-      <div class="header-inner">
-        <div class="site-topbar">
-          <a class="site-brand" id="brand-link" href="https://dgddgd314.github.io/blog/" aria-label="dgddgd314 블로그"><span>dgddgd</span><strong>314</strong></a>
-        </div>
-        <nav class="site-nav" aria-label="메인 메뉴">
-          <a id="blog-link" href="https://dgddgd314.github.io/blog/">블로그</a>
-          <a id="tags-link" href="https://dgddgd314.github.io/blog/tags/">태그</a>
-          <a href="./" aria-current="page">맛집지도</a>
+    <main class="map-shell" aria-label="맛집지도">
+      <div class="map-navigation">
+        <a class="site-brand floating-control" id="brand-link" href="https://dgddgd314.github.io/blog/" aria-label="dgddgd314 블로그"><span>dgddgd</span><strong>314</strong></a>
+        <nav class="presets floating-control" aria-label="지도 지역 선택">
+          <button type="button" data-view="gwanak" aria-pressed="true" disabled>서울대입구</button>
+          <button type="button" data-view="nowon" aria-pressed="false" disabled>노원역</button>
+          <button type="button" data-view="seoul" aria-pressed="false" disabled>서울</button>
+          <button type="button" data-view="korea" aria-pressed="false" disabled>전국</button>
         </nav>
       </div>
-    </header>
-
-    <main class="map-shell" aria-label="맛집지도">
       <div id="map" aria-label="식당 위치 지도"></div>
-      <nav class="presets floating-control" aria-label="지도 지역 선택">
-        <button type="button" data-view="gwanak" aria-pressed="true" disabled>서울대입구</button>
-        <button type="button" data-view="nowon" aria-pressed="false" disabled>노원역</button>
-        <button type="button" data-view="seoul" aria-pressed="false" disabled>서울</button>
-        <button type="button" data-view="korea" aria-pressed="false" disabled>전국</button>
-      </nav>
       <button id="locate" class="location-control floating-control" type="button" aria-label="현재 위치로 이동" title="현재 위치로 이동" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
       </button>

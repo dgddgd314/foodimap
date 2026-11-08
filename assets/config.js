@@ -5,5 +5,4 @@ window.FOODIMAP_CONFIG = {
   naverStyleId: "eaca74d1-25cf-4952-9051-d6c268851b59",
   naverClientId: "0i6m6a36c6",
   blogUrl: "https://dgddgd314.github.io/blog/",
-  tagsUrl: "https://dgddgd314.github.io/blog/tags/",
 };

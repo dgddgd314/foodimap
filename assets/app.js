@@ -265,14 +265,12 @@ async function locate() {
   }
 }
 
-// 식당 데이터를 불러오고 지도와 키보드·지역 선택 동작을 연결합니다.
+// 블로그 로고 링크를 설정하고 식당 데이터·지도·키보드·지역 선택 동작을 연결합니다.
 async function init() {
   const config = window.FOODIMAP_CONFIG || {};
   if (reviewUrl(config.blogUrl)) {
-    document.querySelector("#blog-link").href = config.blogUrl;
     document.querySelector("#brand-link").href = config.blogUrl;
   }
-  if (reviewUrl(config.tagsUrl)) document.querySelector("#tags-link").href = config.tagsUrl;
   try {
     const response = await fetch(new URL("./data/places.json", document.baseURI));
     if (!response.ok) throw new Error(`음식점 정보를 불러오지 못했습니다. (${response.status})`);
