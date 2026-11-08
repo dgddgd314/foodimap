@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="직접 다녀온 식당과 리뷰를 표시한 맛집지도">
+    <meta name="theme-color" content="#ffffff">
+    <title>맛집지도</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+    <link rel="preload" href="./assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="./assets/style.css">
+    <script src="./assets/config.js" defer></script>
+    <script src="./assets/map-controls.js" defer></script>
+    <script src="./assets/naver-map.js" defer></script>
+    <script src="./assets/app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="site-topbar">
+          <a class="site-brand" id="brand-link" href="https://dgddgd314.github.io/blog/" aria-label="dgddgd314 블로그"><span>dgddgd</span><strong>314</strong></a>
+        </div>
+        <nav class="site-nav" aria-label="메인 메뉴">
+          <a id="blog-link" href="https://dgddgd314.github.io/blog/">블로그</a>
+          <a id="tags-link" href="https://dgddgd314.github.io/blog/tags/">태그</a>
+          <a href="./" aria-current="page">맛집지도</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="map-shell" aria-label="맛집지도">
+      <div id="map" aria-label="식당 위치 지도"></div>
+      <nav class="presets floating-control" aria-label="지도 지역 선택">
+        <button type="button" data-view="gwanak" aria-pressed="true" disabled>서울대입구</button>
+        <button type="button" data-view="nowon" aria-pressed="false" disabled>노원역</button>
+        <button type="button" data-view="seoul" aria-pressed="false" disabled>서울</button>
+        <button type="button" data-view="korea" aria-pressed="false" disabled>전국</button>
+      </nav>
+      <button id="locate" class="location-control floating-control" type="button" aria-label="현재 위치로 이동" title="현재 위치로 이동" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+      </button>
+      <div class="zoom-controls floating-control" aria-label="지도 확대 축소">
+        <button id="zoom-in" type="button" aria-label="지도 확대" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button id="zoom-out" type="button" aria-label="지도 축소" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      </div>
+      <section class="place-detail floating-control" id="place-detail" aria-labelledby="place-name" hidden>
+        <div id="detail-content"></div>
+      </section>
+      <div class="map-message floating-control" id="map-message" role="status" hidden></div>
+      <div class="map-meta">
+        <div class="score-legend floating-control" aria-label="총점 0점에서 5점까지, 초록에서 노랑을 거쳐 빨강으로 갈수록 높은 점수">
+          <span>총점</span><span>0</span><span class="legend-gradient" aria-hidden="true"></span><span>5</span>
+        </div>
+      </div>
+      <p class="sr-only" id="map-status" role="status"></p>
+      <p class="sr-only" id="location-status" role="status"></p>
+    </main>
+    <noscript><p class="noscript">지도를 보려면 JavaScript를 켜주세요.</p></noscript>
+  </body>
+</html>

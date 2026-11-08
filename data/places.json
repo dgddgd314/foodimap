@@ -1,0 +1,90 @@
+[
+  {
+    "id": "sample-gwanak-1",
+    "name": "서울대입구의 밥집",
+    "area": "관악 · 서울대입구",
+    "lat": 37.4816,
+    "lng": 126.9527,
+    "score": 4.6,
+    "summary": "서울대입구역 근처 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "sample-gwanak-2",
+    "name": "샤로수길의 작은 식당",
+    "area": "관악 · 샤로수길",
+    "lat": 37.4787,
+    "lng": 126.9567,
+    "score": 3.7,
+    "summary": "샤로수길 근처 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "sample-gwanak-3",
+    "name": "봉천동의 면 요리집",
+    "area": "관악 · 봉천동",
+    "lat": 37.4843,
+    "lng": 126.9489,
+    "score": 2.4,
+    "summary": "봉천동 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "sample-nowon",
+    "name": "노원역 골목의 식당",
+    "area": "노원 · 노원역",
+    "lat": 37.6554,
+    "lng": 127.0631,
+    "score": 4.2,
+    "summary": "노원역 근처 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "sample-seoul",
+    "name": "을지로의 오래된 밥집",
+    "area": "서울 · 을지로",
+    "lat": 37.5661,
+    "lng": 126.991,
+    "score": 4.8,
+    "summary": "을지로 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "sample-busan",
+    "name": "부산 여행 중 들른 식당",
+    "area": "부산 · 남포동",
+    "lat": 35.098,
+    "lng": 129.0304,
+    "score": 4,
+    "summary": "부산 남포동 식당 예시입니다.",
+    "reviewUrl": null,
+    "isExample": true
+  },
+  {
+    "id": "naver-1031219213",
+    "naverPlaceId": "1031219213",
+    "naverUrl": "https://map.naver.com/p/entry/place/1031219213",
+    "name": "하쿠텐라멘",
+    "address": "서울 마포구 동교로 266-12",
+    "addressDetail": "반지하",
+    "area": "서울 연남동",
+    "score": 4.5,
+    "summary": "이에케라멘과 차슈 밥의 극한 감칠맛",
+    "reviewUrl": "https://insidecastle.tistory.com/80",
+    "reviewTitle": "[라멘] 홍대 연남동 이에케라멘 맛집 《하쿠텐라멘》",
+    "reviewImage": "./assets/reviews/hakuten-ramen.png",
+    "isExample": false,
+    "lat": 37.5628261,
+    "lng": 126.9258094,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 마포구 동교로 266-12",
+      "resolvedAt": "2026-11-08T12:45:09.885Z"
+    }
+  }
+]

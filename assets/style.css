@@ -1,0 +1,123 @@
+@font-face {
+  font-family: "Pretendard Variable";
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: swap;
+  src: url("./fonts/PretendardVariable.woff2") format("woff2");
+}
+:root {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #252a2c;
+  background: #fff;
+  font-synthesis: none;
+  --border: #e6e8e7;
+  --shadow: 0 2px 8px #1c292416, 0 0 1px #1c292426;
+}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; }
+button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { font: inherit; cursor: pointer; }
+button:disabled { cursor: default; opacity: .45; }
+button:focus-visible, a:focus-visible { outline: 2px solid #263f35; outline-offset: 3px; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.site-header { position: relative; z-index: 1000; background: #fff; }
+/* 블로그와 같은 최대 폭, 좌우 여백, 상단 88px + 메뉴 45px 비율입니다. */
+.header-inner { width: min(100%, 1140px); margin: 0 auto; padding: 0 40px; }
+.site-topbar { display: flex; align-items: center; min-height: 88px; }
+.site-brand { display: inline-flex; align-items: baseline; gap: 2px; color: #252a2c; font-size: 1.88rem; font-weight: 850; line-height: 1; text-decoration: none; }
+.site-brand strong { color: #2973b2; font: inherit; }
+.site-nav { display: flex; align-items: stretch; gap: 30px; height: 45px; border-bottom: 1px solid var(--border); }
+.site-nav a { position: relative; display: flex; align-items: center; padding: 0 1px; color: #7d8380; text-decoration: none; font-size: .9rem; font-weight: 720; }
+.site-nav a:hover { color: #252a2c; }
+.site-nav a[aria-current] { color: #252a2c; font-weight: 700; }
+.site-nav a[aria-current]::after { content: ""; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; border-radius: 3px 3px 0 0; background: #2973b2; }
+.map-shell { position: relative; width: 100%; height: 100%; min-height: 0; isolation: isolate; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; background: #f1f2ef; z-index: 0; font-family: inherit; }
+.floating-control { background: #fff; border: 1px solid #e2e5e2; box-shadow: var(--shadow); }
+.presets { position: absolute; top: 16px; left: 16px; z-index: 500; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 24px; }
+.presets button { border: 0; border-radius: 18px; background: transparent; color: #767d78; font-size: 12px; height: 34px; padding: 0 16px; white-space: nowrap; }
+.presets button:hover { background: #f6f7f5; color: #303832; }
+.presets button[aria-pressed=true] { background: #edf1ed; color: #263b2e; font-weight: 700; }
+.location-control { position: absolute; bottom: 148px; right: 16px; z-index: 500; width: 44px; height: 44px; padding: 11px; border-radius: 50%; color: #68736a; }
+.location-control:hover { background: #f7f9f6; }
+.location-control[aria-busy=true] { color: #4285f4; opacity: 1; cursor: wait; }
+.location-control[aria-busy=true] svg { animation: locating 1.5s linear infinite; }
+.location-control svg, .zoom-controls svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.location-dot { display: block; width: 20px; height: 20px; border: 3px solid #fff; border-radius: 50%; background: #4285f4; box-shadow: 0 1px 5px #214f8155; }
+@keyframes locating { to { transform: rotate(360deg); } }
+.zoom-controls { position: absolute; bottom: 48px; right: 16px; z-index: 500; display: flex; flex-direction: column; border-radius: 23px; overflow: hidden; }
+.zoom-controls button { display: grid; place-items: center; width: 44px; height: 44px; padding: 13px; border: 0; background: #fff; color: #4a534d; }
+.zoom-controls button + button { position: relative; }
+.zoom-controls button + button::before { content: ""; position: absolute; top: 0; left: 11px; right: 11px; border-top: 1px solid #e9ece8; }
+.zoom-controls button:hover { background: #f5f7f3; }
+.zoom-controls button:focus-visible { outline-offset: -4px; }
+.place-detail { position: absolute; top: 76px; left: 16px; z-index: 600; width: 320px; max-height: calc(100% - 132px); overflow: auto; padding: 16px 20px 20px; border-radius: 16px; box-shadow: 0 5px 24px #18291c1c, 0 0 1px #18291c1a; }
+.place-area { font-size: 11px; color: #8a928b; margin: 0 25px 0 0; line-height: 1.5; }
+.place-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.place-name { font-size: 20px; font-weight: 750; letter-spacing: -.5px; line-height: 1.4; margin: 0; word-break: keep-all; }
+.place-name:focus { outline: none; }
+.place-name:focus-visible { outline: 2px solid #263f35; outline-offset: 3px; border-radius: 2px; }
+.place-score { display: flex; flex-shrink: 0; align-items: center; gap: 3px; color: #303a33; font-size: 26px; font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; }
+.score-marker { display: block; width: 38px; height: 38px; }
+.place-address { font-size: 12px; color: #8c928d; line-height: 1.7; margin: 2px 0 0; }
+.place-summary { font-size: 13px; color: #69736b; line-height: 1.75; word-break: keep-all; margin: 14px 0 0; }
+.place-title-row + .place-summary { margin-top: 10px; }
+.place-actions { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 20px; }
+.place-actions a { display: flex; align-items: center; min-height: 40px; border-radius: 9px; text-decoration: none; font-size: 12px; font-weight: 600; }
+.review-divider { width: 100%; border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
+.review-link { gap: 12px; color: #303a33; }
+.review-link:hover { background: #f5f7f3; }
+.review-image { display: block; flex: 0 0 88px; width: 88px; height: 72px; object-fit: cover; border-radius: 8px; }
+.review-title { min-width: 0; font-size: 13px; font-weight: 650; line-height: 1.6; overflow-wrap: anywhere; }
+.naver-link { justify-content: center; gap: 8px; color: #fff; background: #03c75a; }
+.naver-link:hover { background: #02b350; }
+.naver-logo { display: block; width: 48px; height: auto; }
+.example-note { color: #9ba19a; font-size: 11px; border-top: 1px solid #eef0eb; padding-top: 13px; margin: 17px 0 0; line-height: 1.6; }
+.food-marker { position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; color: #38423b; overflow: visible; }
+/* 40px 클릭 영역을 유지하고 기존 36px 마커 그림을 추가로 10% 줄입니다. */
+.food-marker svg { display: block; width: 32.4px; height: 32.4px; overflow: visible; filter: drop-shadow(0 1px 1.5px #18291c38); transition: transform .15s ease; }
+.food-marker:hover svg, .food-marker:focus-visible svg, .food-marker[aria-pressed=true] svg { transform: scale(1.18); }
+.food-marker[aria-pressed=true] svg { filter: drop-shadow(0 2px 3px #18291c4d); }
+.marker-label { position: absolute; top: 38px; left: 50%; transform: translateX(-50%); display: none; width: 144px; padding: 2px 5px; font-size: 11px; font-weight: 650; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff, 0 0 5px #fff; }
+.food-marker[data-label-visible=true] .marker-label { display: block; }
+.food-marker:hover .marker-label, .food-marker:focus-visible .marker-label, .food-marker[aria-pressed=true] .marker-label { visibility: hidden; }
+.marker-tooltip { position: absolute; left: 50%; bottom: 48px; transform: translateX(-50%); background: #fff; border: 1px solid #e5e8e3; box-shadow: var(--shadow); border-radius: 10px; padding: 9px 12px; white-space: nowrap; font-size: 12px; visibility: hidden; pointer-events: none; }
+.marker-tooltip-score { font-weight: 750; }
+.food-marker:hover .marker-tooltip, .food-marker:focus-visible .marker-tooltip { visibility: visible; }
+.food-marker[aria-pressed=true] .marker-tooltip { visibility: hidden; }
+.map-meta { position: absolute; left: 16px; bottom: 32px; z-index: 400; display: flex; align-items: center; gap: 7px; pointer-events: none; max-width: calc(100% - 90px); }
+.score-legend { display: flex; align-items: center; gap: 7px; font-size: 10px; color: #92998f; height: 28px; padding: 0 11px; border-radius: 16px; }
+.score-legend > span:first-child { color: #6a756a; margin-right: 3px; }
+.legend-gradient { width: 46px; height: 5px; border-radius: 5px; background: linear-gradient(to right, #27a87c, #f6be25, #ed606b); }
+.map-message { position: absolute; z-index: 700; bottom: 80px; left: 16px; max-width: min(440px, calc(100% - 88px)); padding: 14px 16px; border-radius: 12px; font-size: 12px; color: #657063; line-height: 1.7; }
+.map-message button { padding: 5px 8px; margin-left: 8px; border: 1px solid #e0e5dc; background: #fff; color: #53624f; border-radius: 6px; font-size: 11px; }
+.noscript { position: fixed; top: 80px; left: 16px; background: white; padding: 20px; z-index: 1000; }
+@media (max-width: 900px) {
+  .header-inner { padding: 0 24px; }
+}
+@media (max-width: 680px) {
+  .header-inner { padding: 0 16px; }
+  .site-topbar { min-height: 0; padding: 20px 0 18px; }
+  .site-brand { font-size: 1.65rem; }
+  .site-nav { gap: 22px; }
+}
+@media (max-width: 600px) {
+  .presets { top: 12px; left: 12px; right: 12px; max-width: 360px; padding: 4px; gap: 0; }
+  .presets button { flex: 1; min-width: 0; height: 32px; padding: 0 8px; font-size: 11px; }
+  .location-control { bottom: 146px; right: 12px; }
+  .zoom-controls { bottom: 46px; right: 12px; }
+  .place-detail { top: auto; bottom: 78px; left: 12px; right: 12px; width: auto; max-height: min(60%, 340px); padding: 16px 20px 20px; border-radius: 18px; }
+  .place-name { font-size: 19px; }
+  .place-title-row { gap: 10px; }
+  .place-summary { margin-top: 12px; font-size: 12px; }
+  .place-title-row + .place-summary { margin-top: 8px; }
+  .map-shell:has(.place-detail:not([hidden])) :is(.zoom-controls, .location-control) { visibility: hidden; }
+  .map-meta { left: 12px; bottom: 30px; gap: 5px; }
+  .score-legend { font-size: 9px; gap: 5px; height: 26px; padding: 0 9px; }
+  .legend-gradient { width: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
