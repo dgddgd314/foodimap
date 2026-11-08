@@ -29,7 +29,7 @@ function reviewUrl(value, baseUrl) {
   } catch { return null; }
 }
 
-// 식당 필수 정보와 팝업에 표시할 리뷰 제목·이미지 주소를 검증합니다.
+// 식당 필수 정보와 팝업에 표시할 리뷰 제목·게시일·이미지 주소를 검증합니다.
 function validatePlaces(data) {
   if (!Array.isArray(data)) throw new Error("음식점 데이터는 배열이어야 합니다.");
   const ids = new Set();
@@ -48,6 +48,8 @@ function validatePlaces(data) {
     return { ...place, name: place.name.trim(), area: typeof place.area === "string" ? place.area : "",
       summary: typeof place.summary === "string" ? place.summary : "", reviewUrl: reviewUrl(place.reviewUrl),
       reviewTitle: typeof place.reviewTitle === "string" ? place.reviewTitle.trim() : "",
+      reviewDate: typeof place.reviewDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(place.reviewDate)
+        && Number.isFinite(Date.parse(place.reviewDate)) ? place.reviewDate : "",
       reviewImage: reviewUrl(place.reviewImage, document.baseURI),
       address: typeof place.address === "string" ? place.address : "",
       addressDetail: typeof place.addressDetail === "string" ? place.addressDetail : "",
@@ -64,14 +66,15 @@ function scoreColor(score) {
   return `rgb(${stops[index].map((value, i) => Math.round(value + (stops[index + 1][i] - value) * fraction)).join(",")})`;
 }
 
-// 대표이미지와 글 제목을 누르면 원문이 열리는 리뷰 카드를 만듭니다.
+// 대표이미지와 글 제목·게시일을 표시하고 누르면 원문이 열리는 리뷰 카드를 만듭니다.
 function makeReviewLink(place) {
   const title = place.reviewTitle || `${place.name} 리뷰`;
+  const dateText = place.reviewDate.replaceAll("-", ".");
   const link = element("a", "review-link");
   link.href = place.reviewUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.setAttribute("aria-label", `${title} (새 탭)`);
+  link.setAttribute("aria-label", `${title}${dateText ? `, ${dateText} 게시` : ""} (새 탭)`);
   if (place.reviewImage) {
     const image = element("img", "review-image");
     image.src = place.reviewImage;
@@ -82,7 +85,14 @@ function makeReviewLink(place) {
     image.addEventListener("error", () => image.remove(), { once: true });
     link.append(image);
   }
-  link.append(element("span", "review-title", title));
+  const text = element("span", "review-text");
+  text.append(element("span", "review-title", title));
+  if (place.reviewDate) {
+    const date = element("time", "review-date", dateText);
+    date.dateTime = place.reviewDate;
+    text.append(date);
+  }
+  link.append(text);
   return link;
 }
 
@@ -97,7 +107,7 @@ function scoreMarker(score, className = "") {
   return svg;
 }
 
-// 선택한 식당 정보와 지도 링크를 표시하고, 리뷰가 있으면 구분선 아래에 배치합니다.
+// 위치·식당 이름을 왼쪽에 묶고 평점을 오른쪽에 두며, 아래에 지도 링크와 리뷰를 표시합니다.
 function selectPlace(place, fromKeyboard = false) {
   selectedId = place.id;
   content.replaceChildren();
@@ -108,8 +118,10 @@ function selectPlace(place, fromKeyboard = false) {
   score.append(scoreMarker(place.score, "score-marker"), document.createTextNode(place.score.toFixed(1)));
   score.setAttribute("aria-label", `총점 ${place.score.toFixed(1)}점, 5점 만점`);
   const titleRow = element("div", "place-title-row");
-  titleRow.append(heading, score);
-  if (place.area) content.append(element("p", "place-area", `${place.area}${place.isExample ? " · 예시" : ""}`));
+  const identity = element("div", "place-identity");
+  if (place.area) identity.append(element("p", "place-area", `${place.area}${place.isExample ? " · 예시" : ""}`));
+  identity.append(heading);
+  titleRow.append(identity, score);
   content.append(titleRow);
   if (place.address) content.append(element("p", "place-address", [place.address, place.addressDetail].filter(Boolean).join(" ")));
   if (place.summary) content.append(element("p", "place-summary", place.summary));
