@@ -54,7 +54,7 @@
     "score": 4.5,
     "summary": "이에케라멘과 차슈 밥의 극한 감칠맛",
     "reviewUrl": "https://insidecastle.tistory.com/80",
-    "reviewTitle": "[라멘] 홍대 연남동 이에케라멘 맛집 《하쿠텐라멘》",
+    "reviewTitle": "",
     "reviewDate": "2026-11-08",
     "isExample": false,
     "lat": 37.5628261,
@@ -83,6 +83,29 @@
       "provider": "naver",
       "matchedAddress": "서울특별시 관악구 관악로14길 6",
       "resolvedAt": "2026-11-09T03:47:41.756Z"
+    }
+  },
+  {
+    "id": "naver-20856322",
+    "naverPlaceId": "20856322",
+    "naverUrl": "https://map.naver.com/p/entry/place/20856322",
+    "name": "엄마손칼국수",
+    "address": "서울 관악구 관악로14길 105",
+    "addressDetail": "지하 1층",
+    "area": "서울 서울대입구",
+    "score": 4,
+    "summary": "직접 손으로 뽑은 푸짐한 칼국수",
+    "reviewUrl": "https://insidecastle.tistory.com/82",
+    "reviewTitle": "",
+    "reviewDate": "",
+    "reviewImage": "",
+    "isExample": false,
+    "lat": 37.4778837,
+    "lng": 126.9582535,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 관악구 관악로14길 105",
+      "resolvedAt": "2026-11-09T07:32:20.662Z"
     }
   }
 ]
