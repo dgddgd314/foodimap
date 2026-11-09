@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: '만료 시각과 관계없이 OG 정보를 다시 조회'
+        type: boolean
+        default: false
   schedule:
-    # UTC 00:17/12:17 = 한국 시간 09:17/21:17
-    - cron: '17 0,12 * * *'
+    # UTC 00:17 = 한국 시간 09:17. 캐시 확인 후 갱신이 필요할 때만 배포합니다.
+    - cron: '17 0 * * *'
 
 permissions:
   contents: read
@@ -19,6 +24,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      deploy_needed: ${{ github.event_name != 'schedule' || steps.review-check.outputs.refresh_needed == 'true' }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -26,29 +33,37 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm run check
-      - run: npm test
+          package-manager-cache: false
       - name: Restore previous preview URLs
         uses: actions/cache/restore@v5
         with:
           path: .cache/review-previews.json
           key: review-previews-v1-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: review-previews-v1-
-      - name: Refresh OG metadata and build
-        run: npm run build
+      - name: Check whether preview refresh is due
+        id: review-check
+        run: node scripts/build.mjs --check-reviews
+      - name: Check and build with due OG refreshes
+        if: github.event_name != 'schedule' || steps.review-check.outputs.refresh_needed == 'true'
+        run: |
+          npm ci
+          npm run check
+          npm test
+          npm run build -- ${{ inputs.force_refresh && '--force-reviews' || '' }}
       - name: Save preview URLs for temporary outages
+        if: github.event_name != 'schedule' || steps.review-check.outputs.refresh_needed == 'true'
         uses: actions/cache/save@v5
         with:
           path: .cache/review-previews.json
           key: review-previews-v1-${{ github.run_id }}-${{ github.run_attempt }}
       - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'schedule' || steps.review-check.outputs.refresh_needed == 'true'
         with:
           path: _site
 
   deploy:
     needs: build
+    if: needs.build.outputs.deploy_needed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

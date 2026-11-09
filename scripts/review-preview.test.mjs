@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parseReviewPreview, imageExpiresAt, refreshReviewPreviews } from "./review-preview.mjs";
+import { parseReviewPreview, imageExpiresAt, refreshReviewPreviews, reviewRefreshNeeded } from "./review-preview.mjs";
 import { buildSite } from "./build.mjs";
 
 const sourceUrl = "https://example.com/review";
@@ -15,13 +15,13 @@ const html = `<html><head>
 </head><body><meta property="og:image" content="https://wrong.example/body.png"></body></html>`;
 const place = { id: "restaurant", reviewUrl: sourceUrl };
 
-test("OG 속성 순서·HTML 엔티티·상대주소를 해석하고 서명과 현지 게시일을 유지한다", () => {
-  assert.deepEqual(parseReviewPreview(html, sourceUrl), {
+test("OG 속성 순서·HTML 엔티티·상대주소를 해석하고 서명과 현지 게시일을 유지한다", async () => {
+  assert.deepEqual(await parseReviewPreview(html, sourceUrl), {
     reviewTitle: '한 끼 & "리뷰"', reviewDate: "2026-11-08",
     reviewImage: "https://example.com/photo.png?size=400&signature=a%2Bb%3D",
   });
-  assert.equal(parseReviewPreview('<meta property="og:image" content="javascript:alert(1)">', sourceUrl).reviewImage, "");
-  assert.equal(parseReviewPreview('<meta property="og:image" content="data:image/png;base64,AAAA">', sourceUrl).reviewImage, "");
+  assert.equal((await parseReviewPreview('<meta property="og:image" content="javascript:alert(1)">', sourceUrl)).reviewImage, "");
+  assert.equal((await parseReviewPreview('<meta property="og:image" content="data:image/png;base64,AAAA">', sourceUrl)).reviewImage, "");
 });
 
 test("수동 입력을 우선하고 빈 필드만 OG로 채우며 같은 원문과 이미지 파일을 중복 요청하지 않는다", async () => {
@@ -45,7 +45,7 @@ test("모든 필드를 직접 지정한 리뷰는 OG 요청 없이 유지한다"
   assert.deepEqual(result.warnings, []);
 });
 
-test("매 빌드에서 원문을 다시 읽어 캐시의 만료 주소를 최신 주소로 교체한다", async () => {
+test("만료된 주소는 원문을 다시 읽어 최신 주소로 교체한다", async () => {
   const expired = `https://images.example/old.png?expires=${now / 1000 - 60}`;
   const fresh = `https://images.example/new.png?expires=${now / 1000 + 86400}`;
   const result = await refreshReviewPreviews([place], {
@@ -54,6 +54,48 @@ test("매 빌드에서 원문을 다시 읽어 캐시의 만료 주소를 최신
   });
   assert.equal(result.places[0].reviewImage, fresh);
   assert.equal(result.cache[sourceUrl].reviewImage, fresh);
+});
+
+test("유효기간이 충분하면 원문 요청 없이 캐시를 쓰고 만료 3일 전부터 갱신한다", async () => {
+  const day = 86400000;
+  const expiresAt = now + 20 * day;
+  const cached = { reviewTitle: "기존 제목", reviewImage: `https://images.example/photo.png?expires=${expiresAt / 1000}`, fetchedAt: new Date(now).toISOString() };
+  const cache = { [sourceUrl]: cached };
+  const before = expiresAt - 3 * day - 1;
+  assert.equal(reviewRefreshNeeded([place], cache, { now: before }), false);
+  const reused = await refreshReviewPreviews([place], {
+    cache, now: before, fetchImpl: async () => { throw new Error("이 시점에는 원문 요청 금지"); },
+  });
+  assert.equal(reused.fetchedCount, 0);
+  assert.deepEqual(reused.warnings, []);
+  assert.equal(reused.places[0].reviewImage, cached.reviewImage);
+  assert.equal(reused.cache[sourceUrl].fetchedAt, cached.fetchedAt);
+  const due = expiresAt - 3 * day;
+  assert.equal(reviewRefreshNeeded([place], cache, { now: due }), true);
+  const refreshed = await refreshReviewPreviews([place], { cache, now: due, fetchImpl: async () => new Response(html) });
+  assert.equal(refreshed.fetchedCount, 1);
+  assert.match(refreshed.places[0].reviewImage, /photo\.png\?size=400/);
+});
+
+test("만료 정보가 없거나 사진이 없는 리뷰는 7일마다 확인하며 새 리뷰는 즉시 조회한다", async () => {
+  for (const reviewImage of ["https://images.example/static.png", ""]) {
+    const cache = { [sourceUrl]: { reviewTitle: "제목", reviewImage, fetchedAt: new Date(now).toISOString() } };
+    assert.equal(reviewRefreshNeeded([place], cache, { now: now + 7 * 86400000 - 1 }), false);
+    const refreshed = await refreshReviewPreviews([place], {
+      cache, now: now + 7 * 86400000, fetchImpl: async () => new Response(html),
+    });
+    assert.equal(refreshed.fetchedCount, 1);
+  }
+  assert.equal(reviewRefreshNeeded([place], {}, { now }), true);
+  assert.equal(reviewRefreshNeeded([{ id: "no-review" }], {}, { now }), false);
+});
+
+test("수동 강제 갱신은 유효기간이 남은 캐시도 다시 읽는다", async () => {
+  const cache = { [sourceUrl]: { reviewImage: `https://images.example/old.png?expires=${now / 1000 + 30 * 86400}`, fetchedAt: new Date(now).toISOString() } };
+  assert.equal(reviewRefreshNeeded([place], cache, { now, forceRefresh: true }), true);
+  const result = await refreshReviewPreviews([place], { cache, now, forceRefresh: true, fetchImpl: async () => new Response(html) });
+  assert.equal(result.fetchedCount, 1);
+  assert.equal(result.places[0].reviewTitle, '한 끼 & "리뷰"');
 });
 
 test("원문 조회 실패 시 같은 URL의 캐시를 쓰되 중첩된 만료 이미지 주소는 숨긴다", async () => {
@@ -70,6 +112,8 @@ test("원문 조회 실패 시 같은 URL의 캐시를 쓰되 중첩된 만료 �
   assert.equal(result.places[1].reviewTitle, "");
   assert.ok(result.warnings.some(warning => warning.includes("HTTP 503")));
   assert.ok(result.warnings.some(warning => warning.includes("만료")));
+  assert.equal(result.cache[sourceUrl].reviewImage, thumbnail);
+  assert.equal(reviewRefreshNeeded([place], result.cache, { now: now + 86400000 }), true);
   const usable = await refreshReviewPreviews([place], {
     now, cache: { [sourceUrl]: { ...cached, reviewImage: "https://example.com/static.jpg" } },
     fetchImpl: async () => { throw new Error("offline"); },
@@ -97,7 +141,11 @@ test("빌드는 원본 JSON을 바꾸지 않고 공개 파일과 OG 주소만 �
   await writeFile(path.join(rootDir, ".env.local"), "PRIVATE=must-not-publish");
   const source = JSON.stringify([place]);
   await writeFile(path.join(rootDir, "data", "places.json"), source);
+  const check = await buildSite({ rootDir, now, checkOnly: true, fetchImpl: async () => { throw new Error("점검 중 원문 요청 금지"); } });
+  assert.equal(check.refreshNeeded, true);
+  assert.equal((await readdir(rootDir)).includes("_site"), false);
   await buildSite({ rootDir, now, fetchImpl: async () => new Response(html) });
+  assert.equal((await buildSite({ rootDir, now, checkOnly: true })).refreshNeeded, false);
   assert.equal(await readFile(path.join(rootDir, "data", "places.json"), "utf8"), source);
   const built = JSON.parse(await readFile(path.join(rootDir, "_site", "data", "places.json"), "utf8"));
   assert.match(built[0].reviewImage, /^https:/);
