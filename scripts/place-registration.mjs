@@ -17,6 +17,7 @@ export function naverPlace(value) {
   return { naverPlaceId: id, naverUrl: `https://map.naver.com/p/entry/place/${id}` };
 }
 
+// 식당 입력과 선택적인 리뷰 정보를 검증하고 비어 있는 리뷰 필드는 OG 자동 입력용으로 남깁니다.
 export function validateDraft(input) {
   const place = naverPlace(input?.naverUrl);
   for (const key of ["name", "address"]) {
@@ -39,6 +40,20 @@ export function validateDraft(input) {
     }
     reviewUrl = url.href;
   }
+  const reviewTitle = typeof input.reviewTitle === "string" ? input.reviewTitle.trim() : "";
+  const reviewDate = typeof input.reviewDate === "string" ? input.reviewDate.trim() : "";
+  if (reviewDate && (!/^\d{4}-\d{2}-\d{2}$/.test(reviewDate) || !Number.isFinite(Date.parse(reviewDate)))) {
+    throw new Error("리뷰 게시일은 YYYY-MM-DD 형식으로 입력해주세요.");
+  }
+  let reviewImage = "";
+  if (input.reviewImage) {
+    let url;
+    try { url = new URL(input.reviewImage); } catch { throw new Error("대표사진의 웹 이미지 주소를 확인해주세요."); }
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) {
+      throw new Error("대표사진은 http 또는 https 이미지 링크를 사용해주세요.");
+    }
+    reviewImage = url.href;
+  }
   return {
     id: `naver-${place.naverPlaceId}`, ...place,
     name: input.name.trim(), address: input.address.trim(),
@@ -46,7 +61,7 @@ export function validateDraft(input) {
     area: typeof input.area === "string" ? input.area.trim() : "",
     score: input.score,
     summary: typeof input.summary === "string" ? input.summary.trim() : "",
-    reviewUrl, isExample: false,
+    reviewUrl, reviewTitle, reviewDate, reviewImage, isExample: false,
   };
 }
 

@@ -2,12 +2,18 @@
   "name": "foodimap",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "description": "내 티스토리 리뷰를 모아 보는 작은 정적 맛집 지도",
   "scripts": {
-    "dev": "node scripts/serve.mjs",
+    "dev": "npm run build && node scripts/serve.mjs --built",
+    "build": "node scripts/build.mjs",
     "add-place": "node scripts/add-place.mjs",
-    "test": "node --test scripts/place-registration.test.mjs scripts/naver-map.test.mjs scripts/map-controls.test.mjs",
-    "check": "node --check assets/app.js && node --check assets/naver-map.js && node --check assets/map-controls.js && node --check assets/config.js && node --check scripts/serve.mjs && node --check scripts/place-registration.mjs && node --check scripts/add-place.mjs"
+    "test": "node --test scripts/place-registration.test.mjs scripts/naver-map.test.mjs scripts/map-controls.test.mjs scripts/review-preview.test.mjs",
+    "check": "node --check assets/app.js && node --check assets/naver-map.js && node --check assets/map-controls.js && node --check assets/config.js && node --check scripts/serve.mjs && node --check scripts/place-registration.mjs && node --check scripts/add-place.mjs && node --check scripts/review-preview.mjs && node --check scripts/build.mjs"
+  },
+  "devDependencies": {
+    "parse5": "^8.1.1"
   }
 }

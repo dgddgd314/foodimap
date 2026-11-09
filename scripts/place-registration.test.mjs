@@ -43,6 +43,19 @@ test("평점 누락을 0으로 채우지 않고 실제 0점은 보존한다", ()
   assert.equal(validateDraft({ ...draft, addressDetail: undefined }).addressDetail, "");
 });
 
+test("선택한 리뷰 제목·게시일·외부 이미지 주소를 보존하고 비어 있으면 OG 자동 입력용으로 남긴다", async t => {
+  const file = await fixture(t);
+  const review = { reviewTitle: " 내 리뷰 ", reviewDate: "2026-11-08", reviewImage: "https://images.example/food.jpg" };
+  const saved = await savePlace(file, { ...draft, ...review }, location);
+  assert.equal(saved.reviewTitle, "내 리뷰");
+  assert.equal(saved.reviewDate, review.reviewDate);
+  assert.equal(saved.reviewImage, review.reviewImage);
+  assert.equal(validateDraft(draft).reviewImage, "");
+  assert.throws(() => validateDraft({ ...draft, reviewImage: "javascript:alert(1)" }));
+  assert.throws(() => validateDraft({ ...draft, reviewImage: "./assets/photo.jpg" }));
+  assert.throws(() => validateDraft({ ...draft, reviewDate: "어제" }));
+});
+
 test("주소를 API에 전달하고 x/y를 경도/위도로 저장한다", async () => {
   const results = await geocode(draft.address, { ...auth, fetchImpl: async (url, options) => {
     assert.equal(url.origin, "https://maps.apigw.ntruss.com");

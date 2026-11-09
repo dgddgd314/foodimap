@@ -1,6 +1,6 @@
 # foodimap · 맛집지도
 
-내 티스토리 리뷰를 네이버 지도에 표시하는 정적 사이트입니다. [dgddgd314/foodimap](https://github.com/dgddgd314/foodimap) 저장소에서 관리하며, 저장소 루트를 GitHub Pages로 독립 배포할 수 있습니다. 기존 블로그 저장소와의 연동은 보류합니다.
+내 티스토리 리뷰를 네이버 지도에 표시하는 정적 사이트입니다. [dgddgd314/foodimap](https://github.com/dgddgd314/foodimap) 저장소에서 관리하며, GitHub Actions가 리뷰 미리보기를 갱신한 뒤 GitHub Pages로 배포합니다. 기존 블로그 저장소와의 연동은 보류합니다.
 
 ## 파일 구조
 
@@ -13,6 +13,9 @@
 | `assets/map-controls.js` | 이름을 띄엄띄엄 배치하는 로직과 위치 요청 |
 | `assets/app.js`, `assets/style.css`, `index.html` | 지도 화면과 식당 상세 정보 |
 | `scripts/add-place.mjs`, `scripts/place-registration.mjs` | 식당 입력 → 주소 좌표 변환 → 데이터 저장 |
+| `scripts/review-preview.mjs`, `scripts/build.mjs` | 원문의 OG 정보 조회 → 빈 리뷰 필드 보완 → `_site/` 생성 |
+| `.github/workflows/pages.yml` | 푸시·수동 실행·하루 두 번 OG 갱신과 Pages 배포 |
+| `_site/`, `.cache/review-previews.json` | 배포 결과와 이전 OG 정보 캐시. 사진 파일 없이 텍스트·URL만 생성하며 Git에서 제외됩니다. |
 | `.env.local` | 로컬 등록 도구의 API 키. Git 및 미리보기 서버에서 제외됩니다. |
 | `.local/`, `.preview/` | 개인 입력 초안·서버 로그·화면 확인 자료. Git에서 제외됩니다. |
 
@@ -20,20 +23,21 @@
 
 UI 글꼴은 [Pretendard v1.3.9](https://github.com/orioncactus/pretendard/tree/v1.3.9)의 가변 폰트를 로컬에서 불러옵니다. 폰트와 SIL Open Font License는 `assets/fonts/`에 있습니다. 네이버 지도 버튼의 흰색 로고는 [네이버 공식 브랜드 리소스](https://www.navercorp.com/company/brandGuide)에서 내려받은 원본 SVG(`assets/naver-logo-white.svg`)이며, 버튼 배경은 공식 네이버 그린 `#03C75A`입니다.
 
-Node.js 22 이상에서 프로젝트 폴더를 열고 실행합니다. 패키지 설치나 빌드는 필요하지 않습니다.
+Node.js 22 이상에서 프로젝트 폴더를 열고 실행합니다. OG의 HTML을 해석하는 개발 의존성 `parse5`를 설치합니다. 브라우저에 추가 라이브러리를 전달하지는 않습니다.
 
 ```sh
+npm ci
 npm run dev
 ```
 
-[지도 미리보기](http://127.0.0.1:4173/foodimap/)를 엽니다. 직접 실행한 터미널은 미리보기를 사용하는 동안 열어둡니다. 서버가 이미 실행 중이라면 주소만 열면 됩니다.
+[지도 미리보기](http://127.0.0.1:4173/foodimap/)를 엽니다. `npm run dev`는 OG를 조회해 `_site/`를 만든 뒤 빌드 결과를 제공합니다. 직접 실행한 터미널은 미리보기를 사용하는 동안 열어둡니다. 데이터·화면 파일을 수정하면 별도 터미널에서 `npm run build`를 실행한 뒤 새로고침합니다. 이전 버전의 원본 미리보기 서버가 실행 중이라면 한 번 종료하고 다시 실행합니다.
 
 ```sh
 npm run check
 npm test
 ```
 
-문법 검사와 등록·지도 기능 자동 테스트를 실행합니다.
+문법 검사와 등록·지도·OG 자동 테스트를 실행합니다. 테스트에서는 실제 리뷰 서버에 요청하지 않습니다.
 
 ## 식당 추가
 
@@ -45,7 +49,7 @@ npm test
 2. 아래 항목을 순서대로 입력합니다. 선택 항목은 Enter로 건너뛸 수 있습니다.
 3. 주소 변환 결과를 확인합니다. 후보가 여러 개면 해당하는 주소 번호를 선택합니다.
 4. 최종 확인에서 `y`를 입력하면 **`data/places.json`에 새 식당이 추가됩니다**.
-5. 미리보기를 새로고침해 위치·이름·리뷰 링크를 확인합니다. 변경된 파일을 `foodimap` 저장소에 커밋·푸시합니다. Pages를 활성화한 이후에는 공개 사이트에도 반영됩니다.
+5. `npm run build` 후 미리보기를 새로고침해 위치·이름·리뷰 링크를 확인합니다. 변경된 파일을 `foodimap` 저장소에 커밋·푸시하면 Actions가 OG 정보를 채워 공개 사이트에 배포합니다.
 
 | 입력 항목 | 필수 | 예시 / 규칙 |
 | --- | --- | --- |
@@ -57,10 +61,28 @@ npm test
 | `score` | 필수 | 본인이 매긴 총점, 0~5. 소수 입력 가능 |
 | `summary` | 선택 | 본인의 한 줄 메모 |
 | `reviewUrl` | 선택 | 티스토리 **개별 리뷰 글** 주소. 미작성 시 빈 입력 / JSON에서는 `null` |
+| `reviewTitle` | 선택 | 직접 지정할 리뷰 제목. 비우면 `og:title` 사용 |
+| `reviewDate` | 선택 | `YYYY-MM-DD`. 비우면 원문의 `article:published_time` 사용 |
+| `reviewImage` | 선택 | 직접 지정할 HTTP(S) 이미지 URL. 비우면 `og:image` 사용 |
 
 팝업은 지역 표시와 식당 제목을 왼쪽에 세로로 묶고 평점을 오른쪽 가운데에 표시합니다. NAVER 지도 링크 아래 구분선 다음에는 리뷰의 대표이미지와 글 제목·게시일을 표시하며, 카드 전체를 누르면 원문이 새 탭에서 열립니다. 지역 표시와 식당 제목 사이 여백은 0px입니다.
 
-등록된 리뷰의 `reviewTitle`, `reviewDate`, `reviewImage`는 `data/places.json`에서 설정합니다. `reviewDate`는 원문 게시일을 `YYYY-MM-DD` 형식으로 입력하면 제목 아래 `YYYY.MM.DD`로 표시하며, 없으면 날짜를 생략합니다. `reviewImage`에는 `./assets/reviews/파일명.png` 같은 로컬 경로나 웹 이미지 주소를 넣을 수 있습니다. 제목이 없으면 식당 이름과 ‘리뷰’를 표시하고, 이미지가 없거나 로드에 실패하면 텍스트만 표시합니다. 현재 하쿠텐라멘의 제목·게시일·대표이미지는 연결된 글에서 가져왔으며, 만료되는 이미지 주소 대신 `assets/reviews/hakuten-ramen.png`를 사용합니다. 글의 제목·게시일·대표이미지를 바꿔도 자동으로 동기화되지는 않습니다.
+리뷰의 각 필드는 **수동 입력 → OG 정보 → 기존 기본 표시** 순서로 결정합니다. 특히 `reviewImage`가 있으면 그대로 쓰고, 누락·빈 문자열이면 원문의 대표사진 주소를 사용합니다. OG로 알아낸 값을 원본 `data/places.json`에 수동 입력처럼 덮어쓰지 않으므로 다음 빌드에도 계속 갱신됩니다. 수동 입력한 이미지 주소 자체는 자동 교체하지 않으니, 만료 주소는 복사해 넣지 말고 `reviewImage`를 비워 둡니다.
+
+사진 파일은 다운로드하거나 저장소에 추가하지 않습니다. 브라우저가 외부 이미지 URL로 사진을 표시합니다. 게시일은 `YYYY.MM.DD`로 표시하며, 제목이 없으면 식당 이름과 ‘리뷰’, 이미지가 없거나 로드에 실패하면 텍스트만 표시합니다. 하쿠텐라멘의 기존 로컬 사진도 제거하고 OG 이미지를 사용합니다. 과거 Git 커밋에 있던 사진까지 삭제하는 기록 재작성은 포함하지 않습니다.
+
+### OG 갱신 원리
+
+1. GitHub Actions가 `main` 푸시, 수동 실행, **매일 한국 시간 09:17·21:17**에 시작합니다.
+2. 리뷰 URL의 HTML만 읽고 `og:title`, `og:image`(HTTPS 보조 주소 포함), `article:published_time`을 해석합니다. 모든 필드가 수동 입력된 리뷰는 조회를 생략합니다.
+3. 비어 있는 필드를 채운 JSON을 `_site/data/places.json`에 만들고 Pages에 배포합니다. 갱신 커밋이나 이미지 파일은 생성하지 않습니다.
+4. 방문자는 배포된 JSON과 외부 이미지 URL을 읽습니다. 방문할 때마다 티스토리 HTML을 수집하는 서버는 필요하지 않으며 갱신 후 페이지를 다시 열면 새 데이터가 적용됩니다.
+
+원문 조회가 실패하면 같은 리뷰 URL의 이전 정보 캐시를 사용하고 실행 로그에 경고를 남깁니다. 티스토리 썸네일의 중첩 `fname` 주소까지 `expires`를 확인해 이미 만료된 이미지는 생략합니다. 정상 조회에서 OG 사진이 사라졌으면 이전 사진을 재사용하지 않습니다. 캐시도 없으면 기본 텍스트 카드로 배포하므로 리뷰 하나의 장애로 지도 전체 배포가 막히지 않습니다.
+
+Actions 일정은 정확한 시각을 보장하지 않으며, 공개 저장소에 60일간 활동이 없으면 예약 실행이 자동 비활성화될 수 있습니다. 이 경우 Actions에서 워크플로를 다시 활성화하고 **Run workflow**로 갱신합니다. 마지막 배포 뒤 만료·차단된 사진은 다음 성공적인 갱신까지 표시되지 않을 수 있습니다. [GitHub 예약 실행 안내](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+
+### 등록 도구의 주소 처리
 
 `address`만 Geocoding API에 전달하며, `addressDetail`은 입력한 내용대로 별도 저장합니다. 네이버 링크에서 주소를 추출하지 않습니다. `naver.me` 단축 링크는 브라우저에서 식당을 연 뒤 주소창의 최종 장소 링크를 복사합니다.
 
@@ -88,7 +110,7 @@ API 키는 식당 데이터에 저장하지 않습니다. `.env.local` 설정이
 
 - 기본 `address`를 바꾸면 `lat`, `lng`도 새 주소에 맞게 갱신해야 합니다. 상세주소의 층·호수만 바꾸는 경우 좌표를 다시 구할 필요는 없습니다.
 - JSON의 따옴표·쉼표 형식을 유지하고, 항목이 없으면 `[]`로 둡니다.
-- 현재 기록은 가상의 예시 6개(`isExample: true`)와 하쿠텐라멘 실제 리뷰 1개(`isExample: false`)입니다. 실제 기록을 채우면서 예시 객체를 제거하면 됩니다.
+- 가상의 예시는 `isExample: true`, 실제 식당은 `isExample: false`로 구분합니다. 실제 기록을 채우면서 예시 객체를 제거하면 됩니다.
 - 현재 구현은 **지점 하나에 총점·메모·리뷰 링크 하나**를 저장합니다. 앞서 구상한 지점 1:N 리뷰, 세부 평가 기준, 태그·페르소나는 아직 구현하지 않았습니다. `reviews` 배열을 임의로 추가해도 현재 화면에 표시되지 않습니다.
 
 ## 지도 설정
@@ -104,11 +126,11 @@ Web 서비스 URL에는 배포 호스트 `https://dgddgd314.github.io`와 로컬
 ## GitHub 저장소와 Pages 배포
 
 1. [dgddgd314/foodimap](https://github.com/dgddgd314/foodimap) 저장소의 `main` 브랜치에 프로젝트를 올립니다.
-2. 웹사이트 공개가 필요할 때 Settings → Pages에서 `Deploy from a branch`, `main`, `/(root)`를 선택합니다.
-3. `.nojekyll`을 포함해 저장소 루트의 `index.html`, `assets/`, `data/`를 그대로 배포합니다. 별도 빌드·파일 내보내기 단계가 없습니다.
+2. Settings → Pages → Build and deployment → Source를 **GitHub Actions**로 선택합니다. 이전의 `Deploy from a branch` 방식은 OG 빌드 과정을 실행하지 않으므로 전환이 필요합니다.
+3. `.github/workflows/pages.yml`이 검사·OG 조회·빌드 후 `_site/`만 배포합니다. `_site/`에는 `index.html`, `.nojekyll`, `assets/`, 배포용 `data/places.json`만 들어갑니다. 수동 실행은 Actions → **Refresh review previews and deploy** → **Run workflow**입니다.
 4. Pages 활성화 후 지도 주소는 `https://dgddgd314.github.io/foodimap/`입니다.
 
-GitHub 업로드와 Pages 활성화는 별도 단계입니다. `.env.local`, `.local/`, `.preview/`는 `.gitignore`에 따라 업로드하지 않습니다.
+GitHub 업로드와 Pages의 배포 소스 설정은 별도 단계입니다. `.env.local`, `.local/`, `.preview/`, `.cache/`, `_site/`, `node_modules/`는 Git에서 제외합니다. Actions 캐시에도 리뷰 제목·게시일·이미지 URL만 저장하며, OG 조회에 별도 API 키는 필요하지 않습니다. 워크플로에는 저장소 읽기와 Pages 배포에 필요한 권한만 부여합니다.
 
 ## 블로그 연결 (보류)
 

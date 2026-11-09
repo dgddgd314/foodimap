@@ -1,0 +1,63 @@
+name: Refresh review previews and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # UTC 00:17/12:17 = 한국 시간 09:17/21:17
+    - cron: '17 0,12 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - name: Restore previous preview URLs
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/review-previews.json
+          key: review-previews-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: review-previews-v1-
+      - name: Refresh OG metadata and build
+        run: npm run build
+      - name: Save preview URLs for temporary outages
+        uses: actions/cache/save@v5
+        with:
+          path: .cache/review-previews.json
+          key: review-previews-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

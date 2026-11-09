@@ -4,12 +4,12 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const root = fileURLToPath(new URL("../", import.meta.url));
+const root = fileURLToPath(new URL(process.argv.includes("--built") ? "../_site/" : "../", import.meta.url));
 const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".woff2": "font/woff2" };
 const port = Number(process.env.PORT || 4173);
 const basePath = "/foodimap";
 
-// 저장소의 배포 경로와 루트 경로에서 로컬 정적 파일을 제공합니다.
+// 저장소 원본 또는 OG 빌드 결과를 /foodimap/ 경로에서도 미리 볼 수 있게 제공합니다.
 createServer(async (request, response) => {
   try {
     let pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);

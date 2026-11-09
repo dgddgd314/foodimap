@@ -31,6 +31,9 @@ try {
     score: await ask("본인 총점 (0~5)", initial.score),
     summary: await ask("한 줄 메모 (선택)", initial.summary),
     reviewUrl: await ask("티스토리 리뷰 링크 (선택)", initial.reviewUrl),
+    reviewTitle: await ask("리뷰 제목 (비우면 OG 자동 입력)", initial.reviewTitle),
+    reviewDate: await ask("리뷰 게시일 YYYY-MM-DD (비우면 자동 입력)", initial.reviewDate),
+    reviewImage: await ask("대표사진 웹 주소 (비우면 OG 이미지)", initial.reviewImage),
   };
   draft.score = draft.score === "" ? null : Number(draft.score);
   const validated = validateDraft(draft);
