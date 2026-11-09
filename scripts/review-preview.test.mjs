@@ -24,7 +24,7 @@ test("OG 속성 순서·HTML 엔티티·상대주소를 해석하고 서명과 �
   assert.equal((await parseReviewPreview('<meta property="og:image" content="data:image/png;base64,AAAA">', sourceUrl)).reviewImage, "");
 });
 
-test("수동 입력을 우선하고 빈 필드만 OG로 채우며 같은 원문과 이미지 파일을 중복 요청하지 않는다", async () => {
+test("수동 입력을 우선하고 빈 필드만 OG로 채우며 같은 원문은 한 번만 조회한다", async () => {
   const requests = [];
   const manual = { ...place, id: "manual", reviewImage: "https://images.example/manual.png", reviewTitle: "내 제목" };
   const result = await refreshReviewPreviews([manual, { ...place, reviewImage: " " }, { id: "no-review" }], {
@@ -45,11 +45,11 @@ test("모든 필드를 직접 지정한 리뷰는 OG 요청 없이 유지한다"
   assert.deepEqual(result.warnings, []);
 });
 
-test("만료된 주소는 원문을 다시 읽어 최신 주소로 교체한다", async () => {
+test("최근에 조회한 캐시라도 이미지 주소가 만료되면 최신 주소로 교체한다", async () => {
   const expired = `https://images.example/old.png?expires=${now / 1000 - 60}`;
   const fresh = `https://images.example/new.png?expires=${now / 1000 + 86400}`;
   const result = await refreshReviewPreviews([place], {
-    now, cache: { [sourceUrl]: { reviewImage: expired } },
+    now, cache: { [sourceUrl]: { reviewImage: expired, fetchedAt: new Date(now - 86400000).toISOString() } },
     fetchImpl: async () => new Response(`<meta property="og:image" content="${fresh}">`),
   });
   assert.equal(result.places[0].reviewImage, fresh);
@@ -102,7 +102,10 @@ test("원문 조회 실패 시 같은 URL의 캐시를 쓰되 중첩된 만료 �
   const expired = `https://blog.example/image.png?expires=${now / 1000 - 1}&signature=unchanged`;
   const thumbnail = `https://thumb.example/?fname=${encodeURIComponent(expired)}`;
   assert.equal(imageExpiresAt(thumbnail), now - 1000);
-  const cached = { reviewTitle: "저장된 제목", reviewDate: "2026-11-01", reviewImage: thumbnail };
+  const cached = {
+    reviewTitle: "저장된 제목", reviewDate: "2026-11-01", reviewImage: thumbnail,
+    fetchedAt: new Date(now - 86400000).toISOString(),
+  };
   const result = await refreshReviewPreviews([place, { ...place, id: "new", reviewUrl: "https://example.com/other" }], {
     now, cache: { [sourceUrl]: cached }, fetchImpl: async () => new Response("Unavailable", { status: 503 }),
   });
@@ -115,15 +118,18 @@ test("원문 조회 실패 시 같은 URL의 캐시를 쓰되 중첩된 만료 �
   assert.equal(result.cache[sourceUrl].reviewImage, thumbnail);
   assert.equal(reviewRefreshNeeded([place], result.cache, { now: now + 86400000 }), true);
   const usable = await refreshReviewPreviews([place], {
-    now, cache: { [sourceUrl]: { ...cached, reviewImage: "https://example.com/static.jpg" } },
+    now, cache: { [sourceUrl]: {
+      ...cached, reviewImage: "https://example.com/static.jpg", fetchedAt: new Date(now - 7 * 86400000).toISOString(),
+    } },
     fetchImpl: async () => { throw new Error("offline"); },
   });
   assert.equal(usable.places[0].reviewImage, "https://example.com/static.jpg");
+  assert.ok(usable.warnings.some(warning => warning.includes("offline")));
 });
 
 test("OG 이미지가 제거된 원문은 예전 사진을 계속 쓰지 않고 텍스트 카드로 남긴다", async () => {
   const result = await refreshReviewPreviews([place], {
-    cache: { [sourceUrl]: { reviewImage: "https://example.com/deleted.jpg" } },
+    now, cache: { [sourceUrl]: { reviewImage: "https://example.com/deleted.jpg", fetchedAt: new Date(now - 7 * 86400000).toISOString() } },
     fetchImpl: async () => new Response('<meta property="og:title" content="사진 없는 리뷰">'),
   });
   assert.equal(result.places[0].reviewTitle, "사진 없는 리뷰");

@@ -77,7 +77,7 @@ test("키가 없으면 SDK를 요청하지 않고 설정 오류를 알린다", a
   assert.equal(sdk.count(), 0);
 });
 
-test("기본 지도에서는 지명 레이어를 숨기지 않는다", async () => {
+test("스타일 ID가 없으면 기본 지도 설정으로 SDK를 요청한다", async () => {
   const sdk = setup();
   const result = sdk.start();
   sdk.publishApi(); sdk.loaded(); sdk.ready();
@@ -106,7 +106,7 @@ test("줌 버튼은 애니메이션을 사용하며 확대·축소 한계를 지
   map.zoom(20); map.zoom(-30);
   assert.deepEqual(sdk.zoomCalls, [
     { zoom: 17, effect: true }, { zoom: 18, effect: true }, { zoom: 17, effect: true },
-    { zoom: 20, effect: true }, { zoom: 5, effect: true },
+    { zoom: sdk.options().maxZoom, effect: true }, { zoom: sdk.options().minZoom, effect: true },
   ]);
 });
 
