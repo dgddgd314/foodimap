@@ -1,27 +1,5 @@
 [
   {
-    "id": "sample-gwanak-1",
-    "name": "서울대입구의 밥집",
-    "area": "관악 · 서울대입구",
-    "lat": 37.4816,
-    "lng": 126.9527,
-    "score": 4.6,
-    "summary": "서울대입구역 근처 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
-    "id": "sample-gwanak-2",
-    "name": "샤로수길의 작은 식당",
-    "area": "관악 · 샤로수길",
-    "lat": 37.4787,
-    "lng": 126.9567,
-    "score": 3.7,
-    "summary": "샤로수길 근처 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
     "id": "sample-gwanak-3",
     "name": "봉천동의 면 요리집",
     "area": "관악 · 봉천동",
