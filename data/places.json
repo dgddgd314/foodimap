@@ -107,5 +107,28 @@
       "matchedAddress": "서울특별시 관악구 관악로14길 105",
       "resolvedAt": "2026-11-09T07:32:20.662Z"
     }
+  },
+  {
+    "id": "naver-1038622267",
+    "naverPlaceId": "1038622267",
+    "naverUrl": "https://map.naver.com/p/entry/place/1038622267",
+    "name": "이가소머리국밥",
+    "address": "서울 관악구 신림로7나길 32",
+    "addressDetail": "",
+    "area": "서울 신림동",
+    "score": 2,
+    "summary": "로컬 국밥 치고는 가격이 비싸고 여러모로 아쉬운 곳",
+    "reviewUrl": "https://insidecastle.tistory.com/83",
+    "reviewTitle": "",
+    "reviewDate": "",
+    "reviewImage": "",
+    "isExample": false,
+    "lat": 37.4697665,
+    "lng": 126.9398284,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 관악구 신림로7나길 32",
+      "resolvedAt": "2026-11-10T06:47:37.794Z"
+    }
   }
 ]
