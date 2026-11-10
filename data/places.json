@@ -1,49 +1,5 @@
 [
   {
-    "id": "sample-gwanak-3",
-    "name": "봉천동의 면 요리집",
-    "area": "관악 · 봉천동",
-    "lat": 37.4843,
-    "lng": 126.9489,
-    "score": 2.4,
-    "summary": "봉천동 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
-    "id": "sample-nowon",
-    "name": "노원역 골목의 식당",
-    "area": "노원 · 노원역",
-    "lat": 37.6554,
-    "lng": 127.0631,
-    "score": 4.2,
-    "summary": "노원역 근처 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
-    "id": "sample-seoul",
-    "name": "을지로의 오래된 밥집",
-    "area": "서울 · 을지로",
-    "lat": 37.5661,
-    "lng": 126.991,
-    "score": 4.8,
-    "summary": "을지로 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
-    "id": "sample-busan",
-    "name": "부산 여행 중 들른 식당",
-    "area": "부산 · 남포동",
-    "lat": 35.098,
-    "lng": 129.0304,
-    "score": 4,
-    "summary": "부산 남포동 식당 예시입니다.",
-    "reviewUrl": null,
-    "isExample": true
-  },
-  {
     "id": "naver-1031219213",
     "naverPlaceId": "1031219213",
     "naverUrl": "https://map.naver.com/p/entry/place/1031219213",
