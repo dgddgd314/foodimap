@@ -12,7 +12,6 @@
     "reviewUrl": "https://insidecastle.tistory.com/80",
     "reviewTitle": "",
     "reviewDate": "2026-11-08",
-    "isExample": false,
     "lat": 37.5628261,
     "lng": 126.9258094,
     "geocoding": {
@@ -32,7 +31,6 @@
     "score": 3.5,
     "summary": "부리토와 타코에 질렸다면",
     "reviewUrl": "https://insidecastle.tistory.com/81",
-    "isExample": false,
     "lat": 37.4791477,
     "lng": 126.9528632,
     "geocoding": {
@@ -55,7 +53,6 @@
     "reviewTitle": "",
     "reviewDate": "",
     "reviewImage": "",
-    "isExample": false,
     "lat": 37.4778837,
     "lng": 126.9582535,
     "geocoding": {
@@ -78,7 +75,6 @@
     "reviewTitle": "",
     "reviewDate": "",
     "reviewImage": "",
-    "isExample": false,
     "lat": 37.4697665,
     "lng": 126.9398284,
     "geocoding": {

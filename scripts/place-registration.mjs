@@ -61,7 +61,7 @@ export function validateDraft(input) {
     area: typeof input.area === "string" ? input.area.trim() : "",
     score: input.score,
     summary: typeof input.summary === "string" ? input.summary.trim() : "",
-    reviewUrl, reviewTitle, reviewDate, reviewImage, isExample: false,
+    reviewUrl, reviewTitle, reviewDate, reviewImage,
   };
 }
 

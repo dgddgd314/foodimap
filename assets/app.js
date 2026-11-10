@@ -53,8 +53,7 @@ function validatePlaces(data) {
       reviewImage: reviewUrl(place.reviewImage, document.baseURI),
       address: typeof place.address === "string" ? place.address : "",
       addressDetail: typeof place.addressDetail === "string" ? place.addressDetail : "",
-      naverUrl: reviewUrl(place.naverUrl),
-      isExample: place.isExample === true };
+      naverUrl: reviewUrl(place.naverUrl) };
   });
 }
 
@@ -119,7 +118,7 @@ function selectPlace(place, fromKeyboard = false) {
   score.setAttribute("aria-label", `총점 ${place.score.toFixed(1)}점, 5점 만점`);
   const titleRow = element("div", "place-title-row");
   const identity = element("div", "place-identity");
-  if (place.area) identity.append(element("p", "place-area", `${place.area}${place.isExample ? " · 예시" : ""}`));
+  if (place.area) identity.append(element("p", "place-area", place.area));
   identity.append(heading);
   titleRow.append(identity, score);
   content.append(titleRow);
@@ -142,7 +141,7 @@ function selectPlace(place, fromKeyboard = false) {
   }
   if (place.reviewUrl) actions.append(element("hr", "review-divider"), makeReviewLink(place));
   if (actions.childElementCount) content.append(actions);
-  if (!place.reviewUrl) content.append(element("p", "example-note", place.isExample ? "예시 장소 · 실제 리뷰 없음" : "아직 연결된 리뷰가 없습니다."));
+  if (!place.reviewUrl) content.append(element("p", "review-empty", "아직 연결된 리뷰가 없습니다."));
   detail.hidden = false;
   updateSelection();
   updateVisiblePlaces();
@@ -171,7 +170,7 @@ function markerButton(place) {
   const button = element("button", "food-marker");
   button.type = "button";
   button.dataset.placeId = place.id;
-  button.setAttribute("aria-label", `${place.isExample ? "예시, " : ""}${place.name}, ${place.score.toFixed(1)}점`);
+  button.setAttribute("aria-label", `${place.name}, ${place.score.toFixed(1)}점`);
   button.setAttribute("aria-pressed", "false");
   button.append(scoreMarker(place.score));
   button.append(element("span", "marker-label", place.name));
@@ -190,6 +189,7 @@ function markerButton(place) {
   return button;
 }
 
+// 화면 안의 식당 마커와 이름 표시를 갱신하고 식당 수를 안내합니다.
 function updateVisiblePlaces() {
   const visiblePlaces = [];
   places.forEach(place => {
@@ -214,7 +214,7 @@ function updateVisiblePlaces() {
     zoom: map.getZoom(), width: bounds.width, height: bounds.height, obstacles,
   });
   markers.forEach(({ button }, id) => { button.dataset.labelVisible = String(labels.has(id)); });
-  document.querySelector("#map-status").textContent = `현재 지도에 식당 ${visiblePlaces.length}개${places.some(place => place.isExample) ? " (예시 포함)" : ""}`;
+  document.querySelector("#map-status").textContent = `현재 지도에 식당 ${visiblePlaces.length}개`;
 }
 
 function clearPreset() {

@@ -100,7 +100,7 @@ npm run add-place -- --input .local/my-place.json
 
 ### 자동으로 저장되는 정보
 
-등록 도구는 네이버 링크에서 `naverPlaceId`를 추출하고 `id`를 `naver-장소ID`로 만듭니다. 링크는 불필요한 화면 설정을 제거한 `naverUrl`로 저장합니다. 주소 변환 뒤 `lat`(위도), `lng`(경도), `geocoding`(변환 출처·일치 주소·시간)을 추가하고 `isExample`을 `false`로 저장합니다.
+등록 도구는 네이버 링크에서 `naverPlaceId`를 추출하고 `id`를 `naver-장소ID`로 만듭니다. 링크는 불필요한 화면 설정을 제거한 `naverUrl`로 저장합니다. 주소 변환 뒤 `lat`(위도), `lng`(경도), `geocoding`(변환 출처·일치 주소·시간)을 추가합니다.
 
 API 키는 식당 데이터에 저장하지 않습니다. `.env.local` 설정이 없으면 `.env.example`을 참고해 `NAVER_MAPS_CLIENT_ID`, `NAVER_MAPS_CLIENT_SECRET`을 입력합니다. 이미 설정한 `.env.local`은 그대로 사용합니다.
 
@@ -110,7 +110,6 @@ API 키는 식당 데이터에 저장하지 않습니다. `.env.local` 설정이
 
 - 기본 `address`를 바꾸면 `lat`, `lng`도 새 주소에 맞게 갱신해야 합니다. 상세주소의 층·호수만 바꾸는 경우 좌표를 다시 구할 필요는 없습니다.
 - JSON의 따옴표·쉼표 형식을 유지하고, 항목이 없으면 `[]`로 둡니다.
-- 가상의 예시는 `isExample: true`, 실제 식당은 `isExample: false`로 구분합니다. 실제 기록을 채우면서 예시 객체를 제거하면 됩니다.
 - 현재 구현은 **지점 하나에 총점·메모·리뷰 링크 하나**를 저장합니다. 앞서 구상한 지점 1:N 리뷰, 세부 평가 기준, 태그·페르소나는 아직 구현하지 않았습니다. `reviews` 배열을 임의로 추가해도 현재 화면에 표시되지 않습니다.
 
 ## 지도 설정

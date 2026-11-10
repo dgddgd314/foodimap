@@ -111,7 +111,7 @@ test("확인한 좌표만 기존 데이터에 추가하고 중복 등록은 덮�
   assert.equal(records[1].address, draft.address);
   assert.equal(records[1].addressDetail, "지하 1층 101호");
   assert.equal(record.naverPlaceId, "1865441465");
-  assert.equal(record.isExample, false);
+  assert.equal(Object.hasOwn(records[1], "isExample"), false);
   assert.equal(record.reviewUrl, null);
   assert.equal(record.geocoding.provider, "naver");
   assert.equal(content.includes(auth.clientSecret), false);

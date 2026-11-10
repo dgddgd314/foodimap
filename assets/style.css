@@ -69,7 +69,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #263f35; outline-offs
 .naver-link { justify-content: center; gap: 8px; color: #fff; background: #03c75a; }
 .naver-link:hover { background: #02b350; }
 .naver-logo { display: block; width: 48px; height: auto; }
-.example-note { color: #9ba19a; font-size: 11px; border-top: 1px solid #eef0eb; padding-top: 13px; margin: 17px 0 0; line-height: 1.6; }
+.review-empty { color: #9ba19a; font-size: 11px; border-top: 1px solid #eef0eb; padding-top: 13px; margin: 17px 0 0; line-height: 1.6; }
 .food-marker { position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; color: #38423b; overflow: visible; }
 /* 40px 클릭 영역을 유지하고 기존 36px 마커 그림을 추가로 10% 줄입니다. */
 .food-marker svg { display: block; width: 32.4px; height: 32.4px; overflow: visible; filter: drop-shadow(0 1px 1.5px #18291c38); transition: transform .15s ease; }
