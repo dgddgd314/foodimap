@@ -17,6 +17,18 @@ export function naverPlace(value) {
   return { naverPlaceId: id, naverUrl: `https://map.naver.com/p/entry/place/${id}` };
 }
 
+// 링크 형식과 화면 설정이 달라도 네이버 장소 ID가 같으면 기존 식당을 찾습니다.
+export function findPlace(places, naverUrl) {
+  const { naverPlaceId } = naverPlace(naverUrl);
+  return places.find(place => place.naverPlaceId === naverPlaceId || place.id === `naver-${naverPlaceId}`
+    || (place.naverUrl && naverPlace(place.naverUrl).naverPlaceId === naverPlaceId));
+}
+
+// 식당 메모를 제외하고 기존 단일 리뷰와 새 입력에서 방문별 평점·리뷰 정보를 추출합니다.
+function reviewEntry({ score, reviewUrl = null, reviewTitle = "", reviewDate = "", reviewImage = "" }) {
+  return { score, reviewUrl, reviewTitle, reviewDate, reviewImage };
+}
+
 // 식당 입력과 선택적인 리뷰 정보를 검증하고 비어 있는 리뷰 필드는 OG 자동 입력용으로 남깁니다.
 export function validateDraft(input) {
   const place = naverPlace(input?.naverUrl);
@@ -108,11 +120,8 @@ export async function geocode(address, { clientId, clientSecret, fetchImpl = fet
   return results;
 }
 
+// 기존 식당 정보·메모를 유지하며 리뷰와 가중 평점을 추가하고 새 식당만 좌표를 받아 저장합니다.
 export async function savePlace(file, draft, location) {
-  const place = validateDraft(draft);
-  if (!location || !coordinates(location.lat, location.lng) || typeof location.address !== "string" || !location.address.trim()) {
-    throw new Error("확인된 주소와 좌표가 필요합니다.");
-  }
   const lockPath = `${file}.lock`;
   let lock;
   try { lock = await open(lockPath, "wx"); } catch (error) {
@@ -123,14 +132,35 @@ export async function savePlace(file, draft, location) {
   try {
     const existing = JSON.parse(await readFile(file, "utf8"));
     if (!Array.isArray(existing)) throw new Error("기존 식당 데이터가 배열이 아닙니다.");
-    if (existing.some(item => item.id === place.id || item.naverPlaceId === place.naverPlaceId)) {
-      throw new Error("이미 등록한 식당입니다. 기존 기록을 덮어쓰지 않았습니다.");
+    const previous = findPlace(existing, draft.naverUrl);
+    const place = validateDraft({ name: previous?.name, address: previous?.address, ...draft });
+    const review = reviewEntry(place);
+    let record;
+    if (previous) {
+      const reviews = previous.reviews ?? [reviewEntry(previous)];
+      if (!Number.isFinite(previous.score) || previous.score < 0 || previous.score > 5
+        || !Array.isArray(reviews) || !reviews.length
+        || reviews.some(item => !item || !Number.isFinite(item.score) || item.score < 0 || item.score > 5)) {
+        throw new Error("기존 식당의 누적 평점과 리뷰 목록을 확인해주세요. 기록을 변경하지 않았습니다.");
+      }
+      if (review.reviewUrl && reviews.some(item => item.reviewUrl === review.reviewUrl)) {
+        throw new Error("이 식당에 이미 등록한 리뷰 링크입니다. 평점과 기록을 변경하지 않았습니다.");
+      }
+      record = { ...previous, score: (previous.score + place.score) / 2, reviews: [...reviews, review] };
+      existing[existing.indexOf(previous)] = record;
+    } else {
+      if (!location || !coordinates(location.lat, location.lng) || typeof location.address !== "string" || !location.address.trim()) {
+        throw new Error("확인된 주소와 좌표가 필요합니다.");
+      }
+      record = { ...place, reviews: [review], lat: location.lat, lng: location.lng,
+        geocoding: { provider: "naver", matchedAddress: location.address, resolvedAt: new Date().toISOString() } };
+      existing.push(record);
     }
-    const record = { ...place, lat: location.lat, lng: location.lng,
-      geocoding: { provider: "naver", matchedAddress: location.address, resolvedAt: new Date().toISOString() } };
+    // 리뷰는 배열에만 저장하고 기존 단일 리뷰 필드는 첫 추가 시 옮깁니다.
+    for (const key of ["reviewUrl", "reviewTitle", "reviewDate", "reviewImage"]) delete record[key];
     const output = await open(temporary, "wx");
     try {
-      await output.writeFile(`${JSON.stringify([...existing, record], null, 2)}\n`, "utf8");
+      await output.writeFile(`${JSON.stringify(existing, null, 2)}\n`, "utf8");
       await output.sync();
     } finally { await output.close(); }
     await rename(temporary, file);

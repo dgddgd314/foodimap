@@ -45,6 +45,32 @@ test("모든 필드를 직접 지정한 리뷰는 OG 요청 없이 유지한다"
   assert.deepEqual(result.warnings, []);
 });
 
+test("여러 리뷰를 각각 갱신하고 기존 단일 리뷰와도 URL 캐시를 공유한다", async () => {
+  const secondUrl = "https://example.com/second";
+  const source = { id: "multiple", score: 3.5, reviews: [
+    { score: 4, reviewUrl: sourceUrl, reviewTitle: "수동 제목" },
+    { score: 3, reviewUrl: secondUrl },
+    { score: 5, reviewUrl: null },
+  ] };
+  const original = structuredClone(source);
+  const requests = [];
+  assert.equal(reviewRefreshNeeded([source], {}, { now }), true);
+  const result = await refreshReviewPreviews([source, place], { now, fetchImpl: async url => {
+    requests.push(url);
+    return new Response(url === secondUrl ? html.replace("한 끼", "두 끼") : html);
+  } });
+  assert.deepEqual(requests, [sourceUrl, secondUrl]);
+  assert.equal(result.places[0].reviews[0].reviewTitle, "수동 제목");
+  assert.match(result.places[0].reviews[1].reviewTitle, /두 끼/);
+  assert.equal(result.places[0].reviews[0].reviewImage, result.places[1].reviewImage);
+  assert.deepEqual(result.places[0].reviews[2], source.reviews[2]);
+  assert.equal(result.places[0].score, 3.5);
+  assert.deepEqual(source, original);
+  assert.equal(reviewRefreshNeeded([source], result.cache, { now }), false);
+  const cache = { ...result.cache, [secondUrl]: { ...result.cache[secondUrl], fetchedAt: new Date(now - 7 * 86400000).toISOString() } };
+  assert.equal(reviewRefreshNeeded([source], cache, { now }), true);
+});
+
 test("최근에 조회한 캐시라도 이미지 주소가 만료되면 최신 주소로 교체한다", async () => {
   const expired = `https://images.example/old.png?expires=${now / 1000 - 60}`;
   const fresh = `https://images.example/new.png?expires=${now / 1000 + 86400}`;
@@ -145,7 +171,7 @@ test("빌드는 원본 JSON을 바꾸지 않고 공개 파일과 OG 주소만 �
   await writeFile(path.join(rootDir, ".nojekyll"), "");
   await writeFile(path.join(rootDir, "assets", "app.js"), "// public");
   await writeFile(path.join(rootDir, ".env.local"), "PRIVATE=must-not-publish");
-  const source = JSON.stringify([place]);
+  const source = JSON.stringify([place, { id: "multiple", score: 3.5, reviews: [{ score: 3.5, reviewUrl: sourceUrl }] }]);
   await writeFile(path.join(rootDir, "data", "places.json"), source);
   const check = await buildSite({ rootDir, now, checkOnly: true, fetchImpl: async () => { throw new Error("점검 중 원문 요청 금지"); } });
   assert.equal(check.refreshNeeded, true);
@@ -155,6 +181,8 @@ test("빌드는 원본 JSON을 바꾸지 않고 공개 파일과 OG 주소만 �
   assert.equal(await readFile(path.join(rootDir, "data", "places.json"), "utf8"), source);
   const built = JSON.parse(await readFile(path.join(rootDir, "_site", "data", "places.json"), "utf8"));
   assert.match(built[0].reviewImage, /^https:/);
+  assert.equal(built[1].reviews[0].reviewImage, built[0].reviewImage);
+  assert.equal(built[1].score, 3.5);
   assert.deepEqual((await readdir(path.join(rootDir, "_site"))).sort(), [".nojekyll", "assets", "data", "index.html"]);
   assert.deepEqual(await readdir(path.join(rootDir, "_site", "assets")), ["app.js"]);
 });

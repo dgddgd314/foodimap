@@ -44,10 +44,45 @@ function app() {
   return { context, elements };
 }
 
+const place = { id: "place", name: "식당", lat: 37.5, lng: 127, score: 3.5 };
+
 test("점수 색상은 0점 파랑·2점 초록·3.5점 노랑·5점 빨강과 중간값을 연결한다", () => {
   const { context } = app();
   for (const [score, color] of [[0, "rgb(66,133,244)"], [1, "rgb(53,151,184)"],
     [2, "rgb(39,168,124)"], [3.5, "rgb(246,190,37)"], [5, "rgb(237,96,107)"]]) {
     assert.equal(context.scoreColor(score), color);
   }
+});
+
+test("기존 단일 리뷰와 새 리뷰 배열을 읽고 잘못된 리뷰 입력을 거부한다", () => {
+  const { context } = app();
+  const legacy = context.validatePlaces([{ ...place, reviewUrl: "https://example.com/old" }])[0];
+  assert.equal(legacy.reviews.length, 1);
+  assert.equal(legacy.reviews[0].score, 3.5);
+  assert.equal(legacy.reviews[0].reviewDate, "");
+  for (const reviews of [{}, [], [null], [{ score: 6 }], [{ score: 3, reviewUrl: "javascript:alert(1)" }]]) {
+    assert.throws(() => context.validatePlaces([{ ...place, reviews }]), /리뷰/);
+  }
+});
+
+test("팝업은 모든 리뷰 링크를 최근 등록 순으로 표시하고 개별 평점과 누적 평점을 구분한다", () => {
+  const { context, elements } = app();
+  const entries = [
+    { score: 4, reviewUrl: "https://example.com/first", reviewTitle: "첫 리뷰", reviewDate: "2026-11-10" },
+    { score: 0, reviewUrl: null },
+    { score: 5, reviewUrl: "https://example.com/latest", reviewDate: "2026-11-01" },
+  ];
+  const validated = context.validatePlaces([{ ...place, reviews: entries }])[0];
+  context.selectPlace(validated);
+  const content = elements.get("#detail-content");
+  const actions = content.children.find(child => child.className === "place-actions");
+  const links = actions.children.filter(child => child.tagName === "a");
+  assert.deepEqual(links.map(link => link.href), [entries[2].reviewUrl, entries[0].reviewUrl]);
+  assert.match(links[0].attributes["aria-label"], /식당 리뷰, 5.0점/);
+  assert.match(links[1].attributes["aria-label"], /첫 리뷰, 4.0점/);
+  const titleRow = content.children[0];
+  assert.match(titleRow.children[1].attributes["aria-label"], /총점 3.5점/);
+  assert.equal(validated.reviews[0].reviewUrl, entries[0].reviewUrl);
+  context.selectPlace(context.validatePlaces([place])[0]);
+  assert.ok(content.children.some(child => child.className === "review-empty"));
 });

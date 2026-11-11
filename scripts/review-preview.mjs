@@ -63,27 +63,25 @@ function previewNeedsRefresh(preview, now) {
   return expiresAt === null ? now - fetchedAt >= 7 * DAY : expiresAt - now <= 3 * DAY;
 }
 
-// 원문 요청이나 HTML 파서 설치 없이 캐시만 읽어 갱신할 리뷰가 있는지 판단합니다.
+// 기존 단일 리뷰와 리뷰 배열을 모두 살펴 원문 요청 없이 갱신 필요 여부를 판단합니다.
 export function reviewRefreshNeeded(places, cache, { now = Date.now(), forceRefresh = false } = {}) {
-  return places.some(place => {
-    const sourceUrl = reviewSource(place);
+  return places.some(place => (place.reviews ?? [place]).some(review => {
+    const sourceUrl = reviewSource(review);
     return sourceUrl && (forceRefresh || previewNeedsRefresh(cache[sourceUrl], now));
-  });
+  }));
 }
 
-// 갱신 시점이 된 원문만 조회하고 수동 입력이 없는 필드를 채우며 실패 시 이전 정보를 사용합니다.
+// 모든 방문 리뷰의 빈 필드를 OG로 보완하며 같은 URL의 캐시와 조회 결과를 공유합니다.
 export async function refreshReviewPreviews(places, { cache = {}, fetchImpl = fetch, now = Date.now(), forceRefresh = false } = {}) {
   const previews = new Map();
   const nextCache = {};
   const warnings = [];
   const result = [];
   let fetchedCount = 0;
-  for (const place of places) {
-    const sourceUrl = reviewSource(place);
-    if (!sourceUrl) {
-      result.push({ ...place });
-      continue;
-    }
+  // 리뷰 하나를 갱신하고 실패하거나 만료된 경우 기존 캐시의 사용 가능한 정보를 돌려줍니다.
+  async function enrichReview(review, placeId) {
+    const sourceUrl = reviewSource(review);
+    if (!sourceUrl) return { ...review };
     if (!previews.has(sourceUrl)) {
       let preview = cache[sourceUrl] || {};
       if (forceRefresh || previewNeedsRefresh(preview, now)) {
@@ -93,7 +91,7 @@ export async function refreshReviewPreviews(places, { cache = {}, fetchImpl = fe
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           preview = { ...await parseReviewPreview(await response.text(), response.url || sourceUrl), fetchedAt: new Date(now).toISOString() };
         } catch (error) {
-          warnings.push(`${place.id}: OG 조회 실패 (${error.message}). 이전 정보가 있으면 사용합니다.`);
+          warnings.push(`${placeId}: ${sourceUrl} OG 조회 실패 (${error.message}). 이전 정보가 있으면 사용합니다.`);
         }
       }
       // 캐시에는 만료 시각을 남겨 다음 점검에도 재시도하고, 화면에 내보낼 주소만 숨깁니다.
@@ -101,16 +99,25 @@ export async function refreshReviewPreviews(places, { cache = {}, fetchImpl = fe
       const expiry = imageExpiresAt(preview.reviewImage);
       if (expiry !== null && expiry <= now) {
         preview = { ...preview, reviewImage: "" };
-        warnings.push(`${place.id}: 만료된 OG 이미지 주소를 생략했습니다.`);
+        warnings.push(`${placeId}: ${sourceUrl} 만료된 OG 이미지 주소를 생략했습니다.`);
       }
       previews.set(sourceUrl, preview);
     }
     const preview = previews.get(sourceUrl);
-    const enriched = { ...place };
+    const enriched = { ...review };
     for (const key of REVIEW_FIELDS) {
-      if (typeof place[key] !== "string" || !place[key].trim()) enriched[key] = preview[key] || "";
+      if (typeof review[key] !== "string" || !review[key].trim()) enriched[key] = preview[key] || "";
     }
-    result.push(enriched);
+    return enriched;
+  }
+  for (const place of places) {
+    if (place.reviews) {
+      const reviews = [];
+      for (const review of place.reviews) reviews.push(await enrichReview(review, place.id));
+      result.push({ ...place, reviews });
+    } else {
+      result.push(await enrichReview(place, place.id));
+    }
   }
   return { places: result, cache: nextCache, warnings, fetchedCount };
 }
