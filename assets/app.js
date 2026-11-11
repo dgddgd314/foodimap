@@ -57,10 +57,12 @@ function validatePlaces(data) {
   });
 }
 
+// 0점 파랑·2점 초록·3.5점 노랑·5점 빨강 사이의 색상을 선형 보간합니다.
 function scoreColor(score) {
-  const stops = [[39, 168, 124], [246, 190, 37], [237, 96, 107]];
-  const position = Math.max(0, Math.min(5, score)) / 2.5;
-  const index = Math.min(1, Math.floor(position));
+  const stops = [[66, 133, 244], [39, 168, 124], [246, 190, 37], [237, 96, 107]];
+  const value = Math.max(0, Math.min(5, score));
+  const position = value < 2 ? value / 2 : 1 + (value - 2) / 1.5;
+  const index = Math.min(2, Math.floor(position));
   const fraction = position - index;
   return `rgb(${stops[index].map((value, i) => Math.round(value + (stops[index + 1][i] - value) * fraction)).join(",")})`;
 }

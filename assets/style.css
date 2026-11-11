@@ -85,7 +85,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid #263f35; outline-offs
 .map-meta { position: absolute; left: 16px; bottom: 32px; z-index: 400; display: flex; align-items: center; gap: 7px; pointer-events: none; max-width: calc(100% - 90px); }
 .score-legend { display: flex; align-items: center; gap: 7px; font-size: 10px; color: #92998f; height: 28px; padding: 0 11px; border-radius: 16px; }
 .score-legend > span:first-child { color: #6a756a; margin-right: 3px; }
-.legend-gradient { width: 46px; height: 5px; border-radius: 5px; background: linear-gradient(to right, #27a87c, #f6be25, #ed606b); }
+.legend-gradient { width: 46px; height: 5px; border-radius: 5px; background: linear-gradient(to right, #4285f4 0%, #27a87c 40%, #f6be25 70%, #ed606b 100%); }
 .map-message { position: absolute; z-index: 700; bottom: 80px; left: 16px; max-width: min(440px, calc(100% - 88px)); padding: 14px 16px; border-radius: 12px; font-size: 12px; color: #657063; line-height: 1.7; }
 .map-message button { padding: 5px 8px; margin-left: 8px; border: 1px solid #e0e5dc; background: #fff; color: #53624f; border-radius: 6px; font-size: 11px; }
 .noscript { position: fixed; top: 80px; left: 16px; background: white; padding: 20px; z-index: 1000; }
