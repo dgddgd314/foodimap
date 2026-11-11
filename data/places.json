@@ -106,5 +106,32 @@
         "reviewImage": ""
       }
     ]
+  },
+  {
+    "id": "naver-2078364739",
+    "naverPlaceId": "2078364739",
+    "naverUrl": "https://map.naver.com/p/entry/place/2078364739",
+    "name": "라멘츠쿠",
+    "address": "서울 노원구 상계로1길 38-11",
+    "addressDetail": "우창프라자 1층 117호",
+    "area": "서울 노원역",
+    "score": 4,
+    "summary": "놀라울만큼 깔끔한 숨겨진 츠케멘 맛집",
+    "lat": 37.6579785,
+    "lng": 127.0621185,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 노원구 상계로1길 38-11 우창프라자",
+      "resolvedAt": "2026-11-11T00:03:53.964Z"
+    },
+    "reviews": [
+      {
+        "score": 4,
+        "reviewUrl": "https://insidecastle.tistory.com/84",
+        "reviewTitle": "",
+        "reviewDate": "",
+        "reviewImage": ""
+      }
+    ]
   }
 ]
