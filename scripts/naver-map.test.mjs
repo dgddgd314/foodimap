@@ -5,7 +5,8 @@ import vm from "node:vm";
 
 const source = await readFile(new URL("../assets/naver-map.js", import.meta.url), "utf8");
 
-function setup({ reducedMotion = false } = {}) {
+// SDK 호출을 기록해 지도 이동과 마커 쌓임 순서를 검사합니다.
+function setup({ reducedMotion = false, distant = false, gl = false } = {}) {
   let script;
   let mapsCreated = 0;
   let timeout;
@@ -13,8 +14,17 @@ function setup({ reducedMotion = false } = {}) {
   let zoom = 16;
   const zoomCalls = [];
   const locationMoves = [];
+  const boundsMoves = [];
+  const flights = [];
+  const glMap = {
+    flyTo: options => flights.push(options),
+    fitBounds: (bounds, options) => flights.push({ bounds, ...options }),
+  };
   const markers = [];
   const circles = [];
+  const listeners = new Set();
+  const containerEvents = {};
+  const container = { addEventListener: (event, callback) => { containerEvents[event] = callback; } };
   const window = {
     setTimeout(callback) { timeout = callback; return 1; },
     matchMedia() { return { matches: reducedMotion }; },
@@ -23,30 +33,61 @@ function setup({ reducedMotion = false } = {}) {
   const document = { createElement: () => ({}), head: { append(node) { script = node; } } };
   vm.runInNewContext(source, { window, document, clearTimeout });
   return {
-    start: (config = {}) => window.FoodimapNaverMap.create({}, { naverClientId: "test-id", ...config }, () => {}),
+    start: (config = {}) => window.FoodimapNaverMap.create(container, { naverClientId: "test-id", ...config }, () => {}),
     script: () => script,
     options: () => mapOptions,
-    zoomCalls, locationMoves, markers, circles,
+    zoomCalls, locationMoves, boundsMoves, flights, markers, circles,
+    // SDK 이동 완료를 전달하고 한 번만 실행하는 리스너를 제거합니다.
+    idle() {
+      for (const listener of [...listeners]) {
+        listeners.delete(listener);
+        listener();
+      }
+    },
+    interact: event => containerEvents[event](),
     ready: () => window.foodimapNaverReady(),
     loaded: () => script.onload(),
     networkFailure: () => script.onerror(),
     authenticationFailure: () => window.navermap_authFailure(),
     expire: () => timeout(),
     count: () => mapsCreated,
+    // 실제 네트워크 없이 지도·마커 API를 제공합니다.
     publishApi() {
       window.naver = { maps: {
         Map: class {
           constructor(_container, options) { mapsCreated += 1; mapOptions = options; }
           getZoom() { return zoom; }
+          // GL 모드에서 전달한 카메라 옵션을 검사할 수 있게 합니다.
+          getMapbox() { return gl ? glMap : undefined; }
+          // 먼 중심점 여부와 현재 중심을 테스트 조건대로 제공합니다.
+          getBounds() { return { hasLatLng: () => !distant }; }
+          getCenter() { return mapOptions.center; }
           setZoom(value, effect) { zoom = value; zoomCalls.push({ zoom, effect }); }
-          morph(position, level) { locationMoves.push({ position, zoom: level, animate: true }); }
+          // 좌표 이동의 애니메이션 옵션을 기록합니다.
+          morph(position, level, transition) { locationMoves.push({ position, zoom: level, animate: true, transition }); }
           updateBy(position, level) { locationMoves.push({ position, zoom: level, animate: false }); }
+          // 영역 이동과 여백을 기록합니다.
+          panToBounds(bounds, transition, margin) { boundsMoves.push({ bounds, transition, margin, animate: true }); }
+          // 효과 없는 영역 배치를 기록합니다.
+          fitBounds(bounds, margin) { boundsMoves.push({ bounds, margin, animate: false }); }
         },
         LatLng: class { constructor(lat, lng) { this.lat = lat; this.lng = lng; } },
+        LatLngBounds: class {
+          // 전달된 남서·북동 경계를 보관합니다.
+          constructor(sw, ne) { this.sw = sw; this.ne = ne; }
+          // 경로의 두 좌표를 포함하는 영역을 기록합니다.
+          static bounds(sw, ne) { return new this(sw, ne); }
+        },
+        Event: {
+          once: (_map, _event, callback) => { listeners.add(callback); return callback; },
+          removeListener: listener => listeners.delete(listener),
+        },
         Size: class {}, Point: class {},
         Marker: class {
           constructor(options) { this.options = options; markers.push(this); }
           setPosition(position) { this.options.position = position; }
+          // 선택 상태에 따른 최종 표시 순서를 보관합니다.
+          setZIndex(zIndex) { this.options.zIndex = zIndex; }
         },
         Circle: class {
           constructor(options) { this.options = options; circles.push(this); }
@@ -108,6 +149,72 @@ test("줌 버튼은 애니메이션을 사용하며 확대·축소 한계를 지
     { zoom: 17, effect: true }, { zoom: 18, effect: true }, { zoom: 17, effect: true },
     { zoom: sdk.options().maxZoom, effect: true }, { zoom: sdk.options().minZoom, effect: true },
   ]);
+});
+
+test("마커는 평점 순위를 유지하고 선택 해제 후에도 원래 순위로 돌아간다", async () => {
+  const sdk = setup();
+  sdk.publishApi();
+  const map = await sdk.start();
+  const high = map.addMarker({ lat: 37.5, lng: 127, score: 5 }, {}, 3);
+  const low = map.addMarker({ lat: 37.5, lng: 127, score: 0 }, {}, 1);
+  map.addMarker({ lat: 37.5, lng: 127, score: 3.5 }, {}, 2);
+  assert.deepEqual(sdk.markers.map(marker => marker.options.zIndex), [3, 1, 2]);
+  low.select(true);
+  assert.ok(sdk.markers[1].options.zIndex > sdk.markers[0].options.zIndex);
+  low.select(false);
+  high.select(true);
+  high.select(false);
+  assert.deepEqual(sdk.markers.map(marker => marker.options.zIndex), [3, 1, 2]);
+});
+
+test("GL 프리셋은 동작 줄이기 환경에서도 이동 효과를 실행하고 초기 배치는 즉시 반영한다", async () => {
+  const sdk = setup({ reducedMotion: true, gl: true });
+  sdk.publishApi();
+  const map = await sdk.start();
+  const center = { center: [37.5, 127], naverZoom: 15 };
+  const bounds = { bounds: [[33, 124.5], [38.7, 132]] };
+  map.applyView(center);
+  map.applyView(bounds);
+  map.applyView(center, { animated: true });
+  map.applyView(bounds, { animated: true });
+  assert.equal(sdk.locationMoves[0].animate, false);
+  assert.equal(sdk.boundsMoves[0].animate, false);
+  assert.deepEqual([...sdk.flights[0].center], [127, 37.5]);
+  assert.deepEqual(sdk.flights[1].bounds.map(pair => [...pair]), [[124.5, 33], [132, 38.7]]);
+  assert.ok(sdk.flights.every(flight => flight.essential && flight.duration > 0));
+});
+
+test("같은 배율의 먼 프리셋은 경로를 펼친 뒤 목적지로 확대한다", async () => {
+  const sdk = setup({ distant: true });
+  sdk.publishApi();
+  const map = await sdk.start();
+  map.zoom(-1);
+  const view = { center: [37.6551, 127.0612], naverZoom: 15 };
+  map.applyView(view, { animated: true });
+  assert.equal(sdk.locationMoves.length, 0);
+  assert.equal(sdk.boundsMoves.length, 1);
+  assert.equal(sdk.boundsMoves[0].animate, true);
+  sdk.idle();
+  assert.equal(sdk.locationMoves[0].position.lat, view.center[0]);
+  assert.equal(sdk.locationMoves[0].zoom, view.naverZoom);
+  assert.equal(sdk.locationMoves[0].animate, true);
+});
+
+test("다른 프리셋이나 직접 조작 후에는 이전 목적지로 되돌아가지 않는다", async () => {
+  for (const action of ["preset", "pointerdown", "wheel", "keydown", "zoom", "location"]) {
+    const sdk = setup({ distant: true });
+    sdk.publishApi();
+    const map = await sdk.start();
+    map.zoom(-1);
+    map.applyView({ center: [37.6551, 127.0612], naverZoom: 15 }, { animated: true });
+    if (action === "preset") map.applyView({ bounds: [[33, 124.5], [38.7, 132]] }, { animated: true });
+    if (["pointerdown", "wheel", "keydown"].includes(action)) sdk.interact(action);
+    if (action === "zoom") map.zoom(1);
+    if (action === "location") map.showLocation({ latitude: 35, longitude: 128, accuracy: 10 });
+    const previousMoves = sdk.locationMoves.length;
+    sdk.idle();
+    assert.equal(sdk.locationMoves.length, previousMoves, action);
+  }
 });
 
 test("위치 버튼은 기존 위치 점·오차 원을 갱신하고 위치로 이동한다", async () => {

@@ -133,5 +133,32 @@
         "reviewImage": ""
       }
     ]
+  },
+  {
+    "id": "naver-2089473391",
+    "naverPlaceId": "2089473391",
+    "naverUrl": "https://map.naver.com/p/entry/place/2089473391",
+    "name": "지우치",
+    "address": "서울 관악구 관악로 164",
+    "addressDetail": "1층",
+    "area": "서울 서울대입구",
+    "score": 3.5,
+    "summary": "통통한 고기, 아삭한 양파의 맛있는 궁합",
+    "reviews": [
+      {
+        "score": 3.5,
+        "reviewUrl": null,
+        "reviewTitle": "",
+        "reviewDate": "",
+        "reviewImage": ""
+      }
+    ],
+    "lat": 37.4797395,
+    "lng": 126.9528757,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 관악구 관악로 164 대우디오슈페리움1단지",
+      "resolvedAt": "2026-11-13T00:51:36.453Z"
+    }
   }
 ]

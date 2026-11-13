@@ -237,10 +237,11 @@ function clearPreset() {
   document.querySelectorAll("[data-view]").forEach(button => button.setAttribute("aria-pressed", "false"));
 }
 
+// 선택한 지역으로 부드럽게 이동하고 프리셋 버튼 상태를 갱신합니다.
 function applyView(key) {
   activeView = key;
   closeDetail();
-  map.applyView(VIEWS[key]);
+  map.applyView(VIEWS[key], { animated: true });
   document.querySelectorAll("[data-view]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.view === key)));
   updateVisiblePlaces();
 }
@@ -293,9 +294,10 @@ async function init() {
     map = await FoodimapNaverMap.create(document.querySelector("#map"), config,
       message => showMessage(message || (places.length ? "" : "등록된 식당이 없습니다.")));
     map.applyView(VIEWS.gwanak);
-    places.forEach(place => {
+    // 원본 평점을 반올림하지 않고 순위를 매겨 높은 점수의 마커를 앞에 놓습니다.
+    places.toSorted((a, b) => a.score - b.score || a.id.localeCompare(b.id)).forEach((place, index) => {
       const button = markerButton(place);
-      const marker = map.addMarker(place, button);
+      const marker = map.addMarker(place, button, index + 1);
       markers.set(place.id, { button, marker });
       button.addEventListener("pointerenter", () => marker.select(true));
       button.addEventListener("pointerleave", () => marker.select(selectedId === place.id));
