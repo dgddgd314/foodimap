@@ -160,5 +160,32 @@
       "matchedAddress": "서울특별시 관악구 관악로 164 대우디오슈페리움1단지",
       "resolvedAt": "2026-11-13T00:51:36.453Z"
     }
+  },
+  {
+    "id": "naver-1023198291",
+    "naverPlaceId": "1023198291",
+    "naverUrl": "https://map.naver.com/p/entry/place/1023198291",
+    "name": "샐러드로우 앤 트라타 노원점",
+    "address": "서울 노원구 상계로 51",
+    "addressDetail": "102호",
+    "area": "서울 노원역",
+    "score": 3,
+    "summary": "무난한 (적당히 맛있는, 그렇지만 특징이 없는) 부리토",
+    "reviews": [
+      {
+        "score": 3,
+        "reviewUrl": null,
+        "reviewTitle": "",
+        "reviewDate": "",
+        "reviewImage": ""
+      }
+    ],
+    "lat": 37.6559935,
+    "lng": 127.0608623,
+    "geocoding": {
+      "provider": "naver",
+      "matchedAddress": "서울특별시 노원구 상계로 51 노원프라자빌딩",
+      "resolvedAt": "2026-11-13T16:19:09.719Z"
+    }
   }
 ]
